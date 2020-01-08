@@ -1,5 +1,6 @@
 import numpy as np
 
+import motpy
 from motpy import MultiObjectTracker, Detection
 
 # format [xmin, ymin, xmax, ymax]
