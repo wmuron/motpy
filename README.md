@@ -59,7 +59,15 @@ for step in range(10):
 - Linux (Ubuntu)
 - Raspberry Pi (4)
 
-## Things to do:
+## Things to do
+
+TODO temporary:
+- allow passing model_kwargs??
+- model_mapping enable autocompletion,
+- add example on the highway, vehicles maybe pedestrians
+
+
+
 - [x] Initial version
 - [ ] Documentation
 - [ ] Performance optimization

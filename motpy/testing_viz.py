@@ -1,6 +1,7 @@
 import numpy as np
 from loguru import logger
 
+from motpy.core import Track, Detection
 from motpy.testing import CANVAS_SIZE, data_generator
 
 try:
@@ -8,7 +9,6 @@ try:
 except BaseException:
     logger.error(
         'Could not import opencv. Please install opencv-python package or some of the testing functionalities will not be available')
-
 
 """ methods below require opencv-python package installed """
 
@@ -21,9 +21,21 @@ def draw_rectangle(img, box, color, thickness: int = 3):
 
 def draw_text(img, text, above_box, color=(255, 255, 255)):
     tl_pt = (int(above_box[0]), int(above_box[1]) - 7)
-    cv2.putText(img, text[:7] + '...', tl_pt,
+    cv2.putText(img, text, tl_pt,
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale=0.5, color=color)
+    return img
+
+
+def draw_track(img, track: Track, random_color: bool = True, fallback_color=(200, 20, 20)):
+    color = [ord(c) * ord(c) % 256 for c in track.id[:3]] if random_color else fallback_color
+    img = draw_rectangle(img, track.box, color=color, thickness=5)
+    img = draw_text(img, track.id[:5] + '...', above_box=track.box)
+    return img
+
+
+def draw_detection(img, detection: Detection):
+    img = draw_rectangle(img, detection.box, color=(0, 220, 0), thickness=1)
     return img
 
 

@@ -2,6 +2,8 @@ numpy
 scipy
 filterpy
 loguru
+# benchmark requirements
+pandas
 # dev requirements below
 autoflake
 mypy

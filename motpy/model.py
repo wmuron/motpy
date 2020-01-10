@@ -89,7 +89,7 @@ class Model:
 
     def build_Q(
             self,
-            var_pos: float = 75.,
+            var_pos: float = 75,
             var_size: float = 10.):
         """ process noise """
 
@@ -104,8 +104,8 @@ class Model:
 
     def build_R(
             self,
-            var_pos: float = 0.1,
-            var_size: float = 0.3):
+            var_pos: float = 1,
+            var_size: float = 1):
         """ measurement noise, expected order is positon first, then size """
         block_pos = np.eye(self.dim_pos) * var_pos
         block_size = np.eye(self.dim_size) * var_size
