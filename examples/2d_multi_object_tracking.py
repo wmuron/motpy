@@ -2,7 +2,7 @@
 import cv2
 
 import motpy
-from motpy import MultiObjectTracker
+from motpy import MultiObjectTracker, ModelPreset
 from motpy.testing_viz import draw_rectangle, draw_text, image_generator
 
 motpy.set_log_level('DEBUG')
@@ -20,7 +20,7 @@ def demo_tracking_visualization(num_steps: int = 1000, num_objects: int = 10):
     dt = 1 / 24
     tracker = MultiObjectTracker(
         dt=dt,
-        model_spec={'order_pos': 2, 'dim_pos': 2, 'order_size': 0, 'dim_size': 2},
+        model_spec=ModelPreset.constant_acceleration_and_static_box_size_2d.value,
         active_tracks_kwargs={'min_steps_alive': 2, 'max_staleness': 6},
         tracker_kwargs={'max_staleness': 12})
 

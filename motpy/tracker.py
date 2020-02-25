@@ -8,7 +8,7 @@ from loguru import logger
 
 from motpy.core import Box, Detection, Track, Vector
 from motpy.metrics import angular_similarity, calculate_iou
-from motpy.model import MODELS_MAPPING, Model
+from motpy.model import ModelPreset, Model
 
 
 def get_object_tracker(dt: float, model: Model, x0: Optional[Vector] = None):
@@ -34,7 +34,7 @@ def get_object_tracker(dt: float, model: Model, x0: Optional[Vector] = None):
     return tracker
 
 
-DEFAULT_MODEL_SPEC = MODELS_MAPPING['2d_constant_velocity+static_box_size']
+DEFAULT_MODEL_SPEC = ModelPreset.constant_velocity_and_static_box_size_2d.value
 
 
 class Tracker:
@@ -210,6 +210,7 @@ class MultiObjectTracker:
                  model_spec: Union[str, dict] = DEFAULT_MODEL_SPEC,
                  matching_fn: Optional[MatchingFunction] = None,
                  tracker_kwargs: dict = None,
+                 matching_fn_kwargs: dict = None,
                  active_tracks_kwargs: dict = None):
         """
             model_spec specifies the dimension and order for position and size of the object
@@ -224,15 +225,16 @@ class MultiObjectTracker:
 
         if isinstance(model_spec, dict):
             self.model_spec = model_spec
-        elif isinstance(model_spec, str) and model_spec in MODELS_MAPPING:
-            self.model_spec = MODELS_MAPPING[model_spec]
+        elif isinstance(model_spec, str) and model_spec in ModelPreset.__members__:
+            self.model_spec = ModelPreset[model_spec].value
         else:
             raise NotImplementedError('unsupported motion model %s' % str(model_spec))
         logger.trace('using model spec: %s' % str(self.model_spec))
 
         self.matching_fn = matching_fn
+        self.matching_fn_kwargs = matching_fn_kwargs if matching_fn_kwargs is not None else {}
         if self.matching_fn is None:
-            self.matching_fn = BasicMatchingFunction()
+            self.matching_fn = BasicMatchingFunction(**self.matching_fn_kwargs)
 
         # kwargs to be passed to each single object tracker
         self.tracker_kwargs = tracker_kwargs if tracker_kwargs is not None else {}

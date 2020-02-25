@@ -17,9 +17,13 @@ from motpy.testing_viz import draw_detection, draw_track
     MOT16 tracking demo
 
     Usage:
-        python examples/mot16_challange.py --dataset_root ~/Downloads/MOT16 --seq_id 11
+        python examples/mot16_challange.py --dataset_root=~/Downloads/MOT16 --seq_id=11
 
     Note: this is just a demo, the script does not evaluate the tracking on MOT16 dataset.
+    Also, since provided by MOT16 `predictions` do not represent (IMO) the current state
+    of modern detectors, the demo utilizes ground truth + noise as input to the tracker;
+    feel free to use `sel=det` to check the 'real' MOT16 predictions, but keep in mind that
+    tracker is not optimized at all for such noisy predictions.
 
 """
 
@@ -37,6 +41,7 @@ def read_video_frame(directory, frame_idx):
 
 
 def read_detections(path, drop_detection_prob: float = 0.0, add_detection_noise: float = 0.0):
+    """ parses and converts MOT16 benchmark annotations to known [xmin, ymin, xmax, ymax] format """
     path = os.path.expanduser(path)
     logger.debug('reading detections from %s' % path)
     if not os.path.isfile(path):
@@ -70,13 +75,15 @@ def get_miliseconds():
 
 def run(
         dataset_root: str,
-        fps=30,
+        fps: float = 30.0,
         split: str = 'train',
-        seq_id='04',
-        sel='gt',
+        seq_id: str = '04',
+        sel: str = 'gt',
         drop_detection_prob: float = 0.1,
         add_detection_noise: float = 5.0):
+    """ parses detections, loads frames, runs tracking and visualizes the tracked objects """
 
+    dataset_root = os.path.expanduser(dataset_root)
     if not os.path.isdir(dataset_root):
         logger.error('%s does not exist' % dataset_root)
         exit(-1)
@@ -97,23 +104,31 @@ def run(
 
     tracker = MultiObjectTracker(
         dt=1 / fps, tracker_kwargs={'max_staleness': 15},
-        model_spec='2d_constant_acceleration+static_box_size')
-
-    # TODO cleanup
-    tracker.matching_fn.min_iou = 0.25
+        model_spec='constant_acceleration_and_static_box_size_2d',
+        matching_fn_kwargs={'min_iou': 0.25})
 
     # tracking loop
     while True:
-        frame_idx, detections = next(dets_gen)
+        # read detections for a given frame
+        try:
+            frame_idx, detections = next(dets_gen)
+        except Exception as e:
+            logger.warning('finished reading the sequence')
+            logger.trace(f'exception: {e}')
+            break
+
+        # read the frame for a given index
         frame = read_video_frame(frames_dir, frame_idx)
         if frame is None:
             continue
 
+        # provide the MOT tracker with predicted detections
         t1 = get_miliseconds()
         active_tracks = tracker.step(detections)
         ms_elapsed = get_miliseconds() - t1
         logger.debug('step duration: %dms' % ms_elapsed)
 
+        # visualize predictions and tracklets
         for det in detections:
             draw_detection(frame, det)
 
@@ -121,8 +136,11 @@ def run(
             draw_track(frame, track)
 
         cv2.imshow('preview', frame)
+
+        # stop execution on q
         key = cv2.waitKey(int(1000 / fps))
         if key == ord('q'):
+            logger.info('early stopping')
             break
 
 

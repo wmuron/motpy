@@ -1,4 +1,6 @@
 
+from enum import Enum
+
 import numpy as np
 from filterpy.common import Q_discrete_white_noise
 from filterpy.kalman import KalmanFilter
@@ -8,17 +10,17 @@ import motpy.metrics as metrics
 from motpy.core import Box, Detection, Track, Vector
 from motpy.metrics import angular_similarity, calculate_iou
 
+
 """ The list of model presets below is not complete, more reasonable
 options will be added in the future """
 
-MODELS_MAPPING = {
-    '2d_constant_velocity+static_box_size':
-        {'order_pos': 1, 'dim_pos': 2,
-         'order_size': 0, 'dim_size': 2},
-    '2d_constant_acceleration+static_box_size':
-        {'order_pos': 2, 'dim_pos': 2,
-         'order_size': 0, 'dim_size': 2}
-}
+
+class ModelPreset(Enum):
+    constant_velocity_and_static_box_size_2d = {'order_pos': 1, 'dim_pos': 2,
+                                                'order_size': 0, 'dim_size': 2}
+
+    constant_acceleration_and_static_box_size_2d = {'order_pos': 2, 'dim_pos': 2,
+                                                    'order_size': 0, 'dim_size': 2}
 
 
 def _base_dim_block(dt: float, order: int = 1):

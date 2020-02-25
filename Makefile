@@ -22,3 +22,7 @@ clean:
 
 check:
 	mypy --ignore-missing-imports motpy
+
+demo-mot16:
+	# note it requires downloading MOT16 dataset before running
+	python examples/mot16_challange.py --dataset_root=~/Downloads/MOT16 --seq_id=11
