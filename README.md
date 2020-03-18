@@ -31,6 +31,8 @@ Run demo example of tracking N objects in 2D space. In the ideal world it will s
 make demo
 ```
 
+![2D tracking preview](assets/2d_multi_object_tracking.gif)
+
 Minimal tracking example below:
 
 ```python
