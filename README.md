@@ -2,6 +2,9 @@
 
 Project is meant to provide a simple yet powerful baseline for multiple object tracking without the hassle of writing the obvious algorithm stack yourself.
 
+![2D tracking preview](assets/mot16_challange.gif)
+*video source: https://motchallenge.net/data/MOT16/ - sequence 11*
+
 ## Features:
 
 - tracking by detection paradigm
@@ -24,38 +27,52 @@ cd motpy
 make install-develop # to install editable version of library
 make test # to run all tests
 ```
-## Basic usage
+
+## Demo
+
+### 2D tracking
 
 Run demo example of tracking N objects in 2D space. In the ideal world it will show a bunch of colorful objects moving on a grey canvas in various directions, sometimes overlapping, sometimes not. Each object is detected from time to time (green box) and once it's being tracked by motpy, its track box is drawn in red with an ID above.
+
 ```
 make demo
 ```
 
 ![2D tracking preview](assets/2d_multi_object_tracking.gif)
 
-Minimal tracking example below:
+## Basic usage
+
+A minimal tracking example can be found below:
 
 ```python
 import numpy as np
 
-from motpy import MultiObjectTracker, Detection
+from motpy import Detection, MultiObjectTracker
 
 # format [xmin, ymin, xmax, ymax]
 object_box = np.array([1, 1, 10, 10])
 
+# create a tracker object, keeping the state of the
 tracker = MultiObjectTracker(dt=0.1)
 
 for step in range(10):
-    # let's simulate object movement
+    # let's simulate object movement by 1 pixel
     object_box += 1
 
+    # update the state of the multi-object-tracker tracker
+    # with the list of bounding boxes
     tracker.step(detections=[Detection(box=object_box)])
+
+    # retrieve the active tracks from the tracker (you can customize
+    # the hyperparameters of tracks filtering by passing extra arguments)
     tracks = tracker.active_tracks()
 
     print('MOT tracker tracks %d objects' % len(tracks))
     print('first track box: %s' % str(tracks[0].box))
 
 ```
+
+### MOT16 
 
 ## Tested platforms
 - Linux (Ubuntu)
