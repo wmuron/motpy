@@ -3,6 +3,7 @@
 Project is meant to provide a simple yet powerful baseline for multiple object tracking without the hassle of writing the obvious algorithm stack yourself.
 
 ![2D tracking preview](assets/mot16_challange.gif)
+
 *video source: https://motchallenge.net/data/MOT16/ - sequence 11*
 
 ## Features:
