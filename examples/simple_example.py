@@ -2,14 +2,14 @@ import numpy as np
 
 from motpy import Detection, MultiObjectTracker
 
-# format [xmin, ymin, xmax, ymax]
+# create a simple bounding box with format of [xmin, ymin, xmax, ymax]
 object_box = np.array([1, 1, 10, 10])
 
-# create a tracker object, keeping the state of the
+# create a multi object tracker with a specified step time of 100ms
 tracker = MultiObjectTracker(dt=0.1)
 
 for step in range(10):
-    # let's simulate object movement by 1 pixel
+    # let's simulate object movement by 1 unit (e.g. pixel)
     object_box += 1
 
     # update the state of the multi-object-tracker tracker

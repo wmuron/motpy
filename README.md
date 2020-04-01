@@ -40,6 +40,11 @@ make demo
 
 ![2D tracking preview](assets/2d_multi_object_tracking.gif)
 
+### MOT16 challange tracking
+
+1. Download MOT16 dataset from `https://motchallenge.net/data/MOT16/` and extract to `~Downloads/MOT16` directory,
+2. Type `python examples/mot16_challange.py --dataset_root=~/Downloads/MOT16 --seq_id=11` to run a simplified example where a tracker processes artificially corrupted ground-truth bounding boxes from sequence 11; you can preview the expected results in the beginning of the README file,
+
 ## Basic usage
 
 A minimal tracking example can be found below:
@@ -49,14 +54,14 @@ import numpy as np
 
 from motpy import Detection, MultiObjectTracker
 
-# format [xmin, ymin, xmax, ymax]
+# create a simple bounding box with format of [xmin, ymin, xmax, ymax]
 object_box = np.array([1, 1, 10, 10])
 
-# create a tracker object, keeping the state of the
+# create a multi object tracker with a specified step time of 100ms
 tracker = MultiObjectTracker(dt=0.1)
 
 for step in range(10):
-    # let's simulate object movement by 1 pixel
+    # let's simulate object movement by 1 unit (e.g. pixel)
     object_box += 1
 
     # update the state of the multi-object-tracker tracker
@@ -72,10 +77,9 @@ for step in range(10):
 
 ```
 
-### MOT16 
-
 ## Tested platforms
 - Linux (Ubuntu)
+- macOS (Catalina)
 - Raspberry Pi (4)
 
 ## Things to do
