@@ -1,5 +1,8 @@
 from setuptools import setup, find_packages
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(
     name='motpy',
     version='0.0.8',
@@ -8,6 +11,8 @@ setup(
     author='Wiktor Muron',
     author_email='wiktormuron@gmail.com',
     description='Library for track-by-detection multi object tracking implemented in python',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     packages=find_packages(exclude=("tests",)),
     python_requires='>3.6',
     install_requires=['numpy',
