@@ -26,3 +26,6 @@ check:
 demo-mot16:
 	# note it requires downloading MOT16 dataset before running
 	python examples/mot16_challange.py --dataset_root=~/Downloads/MOT16 --seq_id=11
+
+demo-webcam:
+	python examples/webcam_face_tracking.py

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='motpy',
-    version='0.0.7',
+    version='0.0.8',
     url='https://github.com/wmuron/motpy.git',
     download_url='https://github.com/wmuron/motpy/releases/tag/v0.0.7-alpha',
     author='Wiktor Muron',

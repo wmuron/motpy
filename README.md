@@ -17,6 +17,8 @@ Project is meant to provide a simple yet powerful baseline for multiple object t
 
 ## Installation:
 
+### Latest release:
+
 ```bash
 pip install motpy
 ```
@@ -44,7 +46,18 @@ make demo
 ### MOT16 challange tracking
 
 1. Download MOT16 dataset from `https://motchallenge.net/data/MOT16/` and extract to `~Downloads/MOT16` directory,
-2. Type `python examples/mot16_challange.py --dataset_root=~/Downloads/MOT16 --seq_id=11` to run a simplified example where a tracker processes artificially corrupted ground-truth bounding boxes from sequence 11; you can preview the expected results in the beginning of the README file,
+2. Type the command: 
+   ```bash
+   python examples/mot16_challange.py --dataset_root=~/Downloads/MOT16 --seq_id=11
+   ```
+   This will run a simplified example where a tracker processes artificially corrupted ground-truth bounding boxes from sequence 11; you can preview the expected results in the beginning of the README file.
+
+### Face tracking on webcam
+
+Run the following command to start tracking your own face.
+```bash
+python examples/webcam_face_tracking.py
+```
 
 ## Basic usage
 
@@ -77,6 +90,26 @@ for step in range(10):
     print('first track box: %s' % str(tracks[0].box))
 
 ```
+
+## Customization
+
+To adapt the underlying motion model used to keep each object, you can pass a dictionary `model_spec` to `MultiObjectTracker`, which will be used to initialize each object tracker at its creation time. The exact parameters can be found in definition of `motpy.model.Model` class. 
+See the example below, where I've adapted the motion model to better fit the typical motion of face in the laptop camera and decent face detector.
+
+```python
+model_spec = {
+        'order_pos': 1, 'dim_pos': 2, # position is a center in 2D space; under constant velocity model
+        'order_size': 0, 'dim_size': 2, # bounding box is 2 dimensional; under constant velocity model
+        'q_var_pos': 1000., # process noise
+        'r_var_pos': 0.1 # measurement noise
+    }
+
+tracker = MultiObjectTracker(dt=1 / 10, model_spec=model_spec)
+```
+
+The simplification used here is that the object position and size can be treated and modeled independently; hence you can use even 2D bounding boxes in 3D space.
+
+Feel free to tune the parameter of Q and R matrix builders to better fit your use case.
 
 ## Tested platforms
 - Linux (Ubuntu)

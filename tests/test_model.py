@@ -17,7 +17,7 @@ from utils import assert_almost_equal
 
 def test_builders():
     """ model 1 """
-    m1 = Model(0.1, 1, 2, 0, 2)
+    m1 = Model(0.1, 1, 2, 0, 2, r_var_pos=0.1, r_var_size=0.3, p_cov_p0=100.)
 
     assert m1.state_length == 6
     assert m1.measurement_length == 4
@@ -40,14 +40,14 @@ def test_builders():
 
     _ = m1.build_Q()
 
-    R1 = m1.build_R(0.1, 0.3)
+    R1 = m1.build_R()
     R1_exp = np.array([[0.1, 0, 0, 0],
                        [0, 0.1, 0, 0.],
                        [0, 0, 0.3, 0.],
                        [0, 0, 0, 0.3]])
     assert_almost_equal(R1, R1_exp)
 
-    _ = m1.build_P(P0=100)
+    _ = m1.build_P()
 
     """ model 2 """
     m2 = Model(0.1, 2, 1, 1, 1)

@@ -44,13 +44,24 @@ class Model:
             order_pos: int = 1,
             dim_pos: int = 2,
             order_size: int = 0,
-            dim_size: int = 2):
+            dim_size: int = 2,
+            q_var_pos: float = 70.0,
+            q_var_size: float = 10.0,
+            r_var_pos: float = 1,
+            r_var_size: float = 1,
+            p_cov_p0: float = 1000.):
 
         self.dt = dt
         self.order_pos = order_pos
         self.dim_pos = dim_pos
         self.order_size = order_size
         self.dim_size = dim_size
+
+        self.q_var_pos = q_var_pos
+        self.q_var_size = q_var_size
+        self.r_var_pos = r_var_pos
+        self.r_var_size = r_var_size
+        self.p_cov_p0 = p_cov_p0
 
         if self.order_pos > 2 or self.order_size > 2:
             raise ValueError('Currently only system orders <= 2 are supported')
@@ -62,7 +73,8 @@ class Model:
         self.pos_idxs, self.size_idxs, self.z_in_x_idxs, self.offset_idx = self._calc_idxs()
 
         # number of variables in model state
-        self.state_length = self.dim_pos * (self.order_pos + 1) + self.dim_size * (self.order_size + 1)
+        self.state_length = self.dim_pos * (self.order_pos + 1) + \
+            self.dim_size * (self.order_size + 1)
 
         # length of z (observation) vector
         self.measurement_length = self.dim_pos + self.dim_size
@@ -89,11 +101,10 @@ class Model:
         diag_components = [block_pos] * self.dim_pos + [block_size] * self.dim_size
         return block_diag(*diag_components)
 
-    def build_Q(
-            self,
-            var_pos: float = 75,
-            var_size: float = 10.):
+    def build_Q(self):
         """ process noise """
+        var_pos = self.q_var_pos
+        var_size = self.q_var_size
 
         q_pos = var_pos if self.order_pos == 0 else Q_discrete_white_noise(
             dim=self.order_pos + 1, dt=self.dt, var=var_pos)
@@ -104,13 +115,10 @@ class Model:
         diag_components = [q_pos] * self.dim_pos + [q_size] * self.dim_size
         return block_diag(*diag_components)
 
-    def build_R(
-            self,
-            var_pos: float = 1,
-            var_size: float = 1):
+    def build_R(self):
         """ measurement noise, expected order is positon first, then size """
-        block_pos = np.eye(self.dim_pos) * var_pos
-        block_size = np.eye(self.dim_size) * var_size
+        block_pos = np.eye(self.dim_pos) * self.r_var_pos
+        block_size = np.eye(self.dim_size) * self.r_var_size
         return block_diag(block_pos, block_size)
 
     def build_H(self):
@@ -122,8 +130,8 @@ class Model:
             [_base_block(self.order_size)] * self.dim_size
         return block_diag(*diag_components)
 
-    def build_P(self, P0: float = 1000.):
-        return np.eye(self.state_length) * P0
+    def build_P(self):
+        return np.eye(self.state_length) * self.p_cov_p0
 
     def box_to_z(self, box: Box) -> Vector:
         assert self.dim_box == len(box)
