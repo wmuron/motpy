@@ -29,7 +29,7 @@ class Detection:
         self.feature = feature
 
     def __repr__(self):
-        fmt = "(box) %s,\t(score) %s,\t(feature) %s\n"
+        fmt = "(detection: box=%s, score=%s, feature=%s)"
         return fmt % (str(self.box),
                       str(self.score) or 'none',
                       str(self.feature) or 'none')
