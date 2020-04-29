@@ -1,3 +1,4 @@
-from .tracker import MultiObjectTracker, MatchingFunction, BasicMatchingFunction
+from .core import Box, Detection, Image, Track, set_log_level
 from .model import Model, ModelPreset
-from .core import Box, Detection, Track, set_log_level
+from .tracker import (BasicMatchingFunction, MatchingFunction,
+                      MultiObjectTracker)

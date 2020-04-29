@@ -1,10 +1,11 @@
 import os
+from typing import Sequence
 from urllib.request import urlretrieve
 
 import cv2
 from loguru import logger
-
-from motpy import Detection, MultiObjectTracker
+from motpy import Detection, Image, MultiObjectTracker
+from motpy.detector import BaseObjectDetector
 from motpy.testing_viz import draw_detection, draw_track
 
 """
@@ -20,12 +21,14 @@ CONFIG_URL = 'https://raw.githubusercontent.com/opencv/opencv/master/samples/dnn
 CONFIG_PATH = 'deploy.prototxt'
 
 
-class FaceDetector(object):
+class FaceDetector(BaseObjectDetector):
     def __init__(self,
                  weights_url: str = WEIGHTS_URL,
                  weights_path: str = WEIGHTS_PATH,
                  config_url: str = CONFIG_URL,
-                 config_path: str = CONFIG_PATH):
+                 config_path: str = CONFIG_PATH,
+                 conf_threshold: float = 0.5):
+        super(FaceDetector, self).__init__()
 
         if not os.path.isfile(weights_path) or not os.path.isfile(config_path):
             logger.debug('downloading model...')
@@ -34,8 +37,11 @@ class FaceDetector(object):
 
         self.net = cv2.dnn.readNetFromCaffe(config_path, weights_path)
 
-    def process(self, frame, conf_threshold=0.5):
-        blob = cv2.dnn.blobFromImage(frame, 1.0, (300, 300), [104, 117, 123], False, False)
+        # specify detector hparams
+        self.conf_threshold = conf_threshold
+
+    def process_image(self, image: Image) -> Sequence[Image]:
+        blob = cv2.dnn.blobFromImage(image, 1.0, (300, 300), [104, 117, 123], False, False)
         self.net.setInput(blob)
         detections = self.net.forward()
 
@@ -43,11 +49,11 @@ class FaceDetector(object):
         bboxes = []
         for i in range(detections.shape[2]):
             confidence = detections[0, 0, i, 2]
-            if confidence > conf_threshold:
-                xmin = int(detections[0, 0, i, 3] * frame.shape[1])
-                ymin = int(detections[0, 0, i, 4] * frame.shape[0])
-                xmax = int(detections[0, 0, i, 5] * frame.shape[1])
-                ymax = int(detections[0, 0, i, 6] * frame.shape[0])
+            if confidence > self.conf_threshold:
+                xmin = int(detections[0, 0, i, 3] * image.shape[1])
+                ymin = int(detections[0, 0, i, 4] * image.shape[0])
+                xmax = int(detections[0, 0, i, 5] * image.shape[1])
+                ymax = int(detections[0, 0, i, 6] * image.shape[0])
                 bboxes.append([xmin, ymin, xmax, ymax])
 
         return bboxes
@@ -75,7 +81,7 @@ def run():
         frame = cv2.resize(frame, dsize=None, fx=0.5, fy=0.5)
 
         # run face detector on current frame
-        bboxes = face_detector.process(frame)
+        bboxes = face_detector.process_image(frame)
         detections = [Detection(box=bbox) for bbox in bboxes]
         logger.debug(f'detections: {detections}')
 

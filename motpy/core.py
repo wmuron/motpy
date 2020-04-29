@@ -16,6 +16,9 @@ Vector = np.ndarray
 # Track is meant as an output from the object tracker
 Track = collections.namedtuple('Track', 'id box')
 
+# numpy/opencv image alias
+Image = np.ndarray
+
 
 class Detection:
     # Detection is to be an input the the tracker
