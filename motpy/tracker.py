@@ -4,11 +4,11 @@ from typing import Optional, Sequence, Union
 import numpy as np
 import scipy
 from filterpy.kalman import KalmanFilter
-from loguru import logger
-
-from motpy.core import Box, Detection, Track, Vector
+from motpy.core import Box, Detection, Track, Vector, setup_logger
 from motpy.metrics import angular_similarity, calculate_iou
-from motpy.model import ModelPreset, Model
+from motpy.model import Model, ModelPreset
+
+logger = setup_logger(__name__)
 
 
 def get_object_tracker(dt: float, model: Model, x0: Optional[Vector] = None):
@@ -107,7 +107,7 @@ class Tracker:
             has_nans = any(np.isnan(self._tracker.x))
             return has_nans
         except Exception as e:
-            logger.trace('invalid tracker, exception: %s' % str(e))
+            logger.warning('invalid tracker, exception: %s' % str(e))
             return True
 
     @property
@@ -229,7 +229,7 @@ class MultiObjectTracker:
             self.model_spec = ModelPreset[model_spec].value
         else:
             raise NotImplementedError('unsupported motion model %s' % str(model_spec))
-        logger.trace('using model spec: %s' % str(self.model_spec))
+        logger.debug('using model spec: %s' % str(self.model_spec))
 
         self.matching_fn = matching_fn
         self.matching_fn_kwargs = matching_fn_kwargs if matching_fn_kwargs is not None else {}
@@ -238,11 +238,11 @@ class MultiObjectTracker:
 
         # kwargs to be passed to each single object tracker
         self.tracker_kwargs = tracker_kwargs if tracker_kwargs is not None else {}
-        logger.trace('using tracker_kwargs: %s' % str(self.tracker_kwargs))
+        logger.debug('using tracker_kwargs: %s' % str(self.tracker_kwargs))
 
         # kwargs to be used when self.step returns active tracks
         self.active_tracks_kwargs = active_tracks_kwargs if active_tracks_kwargs is not None else {}
-        logger.trace('using active_tracks_kwargs: %s' % str(self.active_tracks_kwargs))
+        logger.debug('using active_tracks_kwargs: %s' % str(self.active_tracks_kwargs))
 
     def active_tracks(self,
                       max_staleness_to_positive_ratio: float = 3.0,
@@ -258,14 +258,14 @@ class MultiObjectTracker:
             if cond1 and cond2 and cond3:
                 tracks.append(Track(id=tracker.id, box=tracker.box))
 
-        logger.trace('active/all tracks: %d/%d' % (len(self.trackers), len(tracks)))
+        logger.debug('active/all tracks: %d/%d' % (len(self.trackers), len(tracks)))
         return tracks
 
     def cleanup_trackers(self):
         count_before = len(self.trackers)
         self.trackers = [t for t in self.trackers if not (t.is_stale or t.is_invalid)]
         count_after = len(self.trackers)
-        logger.trace('deleted %s/%s trackers' % (count_before - count_after, count_before))
+        logger.debug('deleted %s/%s trackers' % (count_before - count_after, count_before))
 
     def step(self, detections: Sequence[Detection]):
         """ the method matches the new detections with existing trackers,
@@ -275,9 +275,9 @@ class MultiObjectTracker:
         # filter out empty detections
         detections = [det for det in detections if det.box is not None]
 
-        logger.trace('step with %d detections' % len(detections))
+        logger.debug('step with %d detections' % len(detections))
         matches = self.matching_fn(self.trackers, detections)
-        logger.trace('matched %d pairs' % len(matches))
+        logger.debug('matched %d pairs' % len(matches))
 
         # all trackers: predict
         for t in self.trackers:

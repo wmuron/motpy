@@ -4,10 +4,9 @@ from enum import Enum
 import numpy as np
 from filterpy.common import Q_discrete_white_noise
 from filterpy.kalman import KalmanFilter
-from scipy.linalg import block_diag
-
 from motpy.core import Box, Detection, Track, Vector
 from motpy.metrics import angular_similarity, calculate_iou
+from scipy.linalg import block_diag
 
 
 """ The list of model presets below is not complete, more reasonable

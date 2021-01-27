@@ -2,13 +2,12 @@ from collections import Counter
 
 import numpy as np
 import pytest
-from loguru import logger
-
-from motpy.core import Detection
+from motpy.core import Detection, setup_logger
 from motpy.testing import data_generator
 from motpy.tracker import (BasicMatchingFunction, MultiObjectTracker,
                            match_by_cost_matrix)
 
+logger = setup_logger(__name__)
 
 @pytest.mark.parametrize("num_objects", [2, 5])
 @pytest.mark.parametrize("order_pos", [0, 1, 2])

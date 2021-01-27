@@ -1,9 +1,10 @@
 import collections
+import logging
+import os
 import sys
 from typing import Optional
 
 import numpy as np
-from loguru import logger
 
 """ types """
 
@@ -40,7 +41,27 @@ class Detection:
 
 """ utils """
 
+LOG_FORMAT = "%(asctime)s\t%(threadName)s-%(name)s:%(levelname)s:%(message)s"
 
-def set_log_level(level: str) -> None:
-    logger.remove()
-    logger.add(sys.stdout, level=level)
+
+def setup_logger(name: str,
+                 level: Optional[str] = None,
+                 is_main: bool = False,
+                 envvar_name: str = 'MOTPY_LOG_LEVEL'):
+    if level is None:
+        level = os.getenv(envvar_name)
+        if level is None:
+            print(f'[{name}] fallback to INFO log_level; set {envvar_name} envvar to override')
+            level = 'INFO'
+        else:
+            print(f'[{name}] envvar {envvar_name} sets log level to {level}')
+
+    level_val = logging.getLevelName(level)
+
+    if is_main:
+        logging.basicConfig(stream=sys.stdout, level=level_val, format=LOG_FORMAT)
+
+    logger = logging.getLogger(name)
+    logger.setLevel(level_val)
+
+    return logger

@@ -3,8 +3,8 @@ from typing import Sequence
 from urllib.request import urlretrieve
 
 import cv2
-from loguru import logger
-from motpy import Detection, NpImage, MultiObjectTracker
+from motpy import Detection, MultiObjectTracker, NpImage
+from motpy.core import setup_logger
 from motpy.detector import BaseObjectDetector
 from motpy.testing_viz import draw_detection, draw_track
 
@@ -14,6 +14,9 @@ from motpy.testing_viz import draw_detection, draw_track
     to present the library ability to track a face of the user
 
 """
+
+logger = setup_logger(__name__, is_main=True)
+
 
 WEIGHTS_URL = 'https://github.com/opencv/opencv_3rdparty/raw/dnn_samples_face_detector_20170830/res10_300x300_ssd_iter_140000.caffemodel'
 WEIGHTS_PATH = 'opencv_face_detector.caffemodel'
