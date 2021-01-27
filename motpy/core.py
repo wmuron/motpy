@@ -17,7 +17,7 @@ Vector = np.ndarray
 Track = collections.namedtuple('Track', 'id box')
 
 # numpy/opencv image alias
-Image = np.ndarray
+NpImage = np.ndarray
 
 
 class Detection:

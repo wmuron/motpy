@@ -4,7 +4,7 @@ from urllib.request import urlretrieve
 
 import cv2
 from loguru import logger
-from motpy import Detection, Image, MultiObjectTracker
+from motpy import Detection, NpImage, MultiObjectTracker
 from motpy.detector import BaseObjectDetector
 from motpy.testing_viz import draw_detection, draw_track
 
@@ -40,7 +40,7 @@ class FaceDetector(BaseObjectDetector):
         # specify detector hparams
         self.conf_threshold = conf_threshold
 
-    def process_image(self, image: Image) -> Sequence[Image]:
+    def process_image(self, image: NpImage) -> Sequence[NpImage]:
         blob = cv2.dnn.blobFromImage(image, 1.0, (300, 300), [104, 117, 123], False, False)
         self.net.setInput(blob)
         detections = self.net.forward()

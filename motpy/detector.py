@@ -1,14 +1,13 @@
 from typing import Sequence
 
 import numpy as np
+from motpy.core import NpImage
 from motpy.tracker import Detection
-
-Image = np.ndarray
 
 
 class BaseObjectDetector:
     def __init__(self) -> None:
         pass
 
-    def process_image(self, image: Image) -> Sequence[Detection]:
+    def process_image(self, image: NpImage) -> Sequence[Detection]:
         raise NotImplementedError('subclass the BaseObjectDetector with your custom detector')
