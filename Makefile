@@ -15,7 +15,7 @@ env-activate:
 	conda activate env_motpy
 
 env-install:
-	pip install -r requirements.txt
+	pip install -r requirements.txt && pip install -r requirements_dev.txt
 
 clean:
 	autoflake --in-place --remove-unused-variables ./motpy/*.py ./tests/*.py

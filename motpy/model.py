@@ -6,7 +6,6 @@ from filterpy.common import Q_discrete_white_noise
 from filterpy.kalman import KalmanFilter
 from scipy.linalg import block_diag
 
-import motpy.metrics as metrics
 from motpy.core import Box, Detection, Track, Vector
 from motpy.metrics import angular_similarity, calculate_iou
 

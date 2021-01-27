@@ -4,13 +4,10 @@ import scipy
 from filterpy.common import Q_discrete_white_noise
 from filterpy.kalman import KalmanFilter
 from loguru import logger
-from numpy.testing import assert_array_equal
-from scipy.linalg import block_diag
-
 from motpy.core import Detection
 from motpy.model import Model
 from motpy.tracker import MultiObjectTracker, match_by_cost_matrix
-
+from scipy.linalg import block_diag
 
 from utils import assert_almost_equal
 
