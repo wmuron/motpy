@@ -1,17 +1,19 @@
 import uuid
-from typing import Optional, Sequence, Union
+from collections.abc import Iterable
+from typing import Any, Optional, Sequence, Union
 
 import numpy as np
 import scipy
 from filterpy.kalman import KalmanFilter
-from loguru import logger
 
-from motpy.core import Box, Detection, Track, Vector
+from motpy.core import Box, Detection, Track, Vector, setup_logger
 from motpy.metrics import angular_similarity, calculate_iou
-from motpy.model import ModelPreset, Model
+from motpy.model import Model, ModelPreset
+
+logger = setup_logger(__name__)
 
 
-def get_object_tracker(dt: float, model: Model, x0: Optional[Vector] = None):
+def get_single_object_tracker(model: Model, x0: Optional[Vector] = None) -> KalmanFilter:
     """ returns Kalman-based tracker based on a specified motion model spec.
         e.g. for spec = {'order_pos': 1, 'dim_pos': 2, 'order_size': 0, 'dim_size': 1}
         we expect the following setup:
@@ -37,6 +39,22 @@ def get_object_tracker(dt: float, model: Model, x0: Optional[Vector] = None):
 DEFAULT_MODEL_SPEC = ModelPreset.constant_velocity_and_static_box_size_2d.value
 
 
+def exponential_moving_average_fn(gamma: float) -> Any:
+    def fn(old, new):
+        if new is None:
+            return old
+
+        if isinstance(new, Iterable):
+            new = np.array(new)
+
+        if old is None:
+            return new  # first call
+        else:
+            return gamma * old + (1 - gamma) * new
+
+    return fn
+
+
 class Tracker:
     def __init__(
             self,
@@ -44,9 +62,10 @@ class Tracker:
             dt: float = 1 / 24,
             x0: Optional[Vector] = None,
             box0: Optional[Box] = None,
-            max_staleness: float = 12.0):
+            max_staleness: float = 12.0,
+            smooth_score_gamma: float = 0.8,
+            smooth_feature_gamma: float = 0.9):
         self.id = str(uuid.uuid4())
-        self.status = 'unconfirmed'
         self.model_spec = model_spec
 
         self.steps_alive = 1
@@ -54,6 +73,10 @@ class Tracker:
         self.staleness = 0.0
         self.max_staleness = max_staleness
 
+        self.update_score_fn = exponential_moving_average_fn(smooth_score_gamma)
+        self.update_feature_fn = exponential_moving_average_fn(smooth_feature_gamma)
+
+        self.score = None
         self.feature = None
 
         logger.debug(
@@ -64,7 +87,7 @@ class Tracker:
         if x0 is None:
             x0 = self.model.box_to_x(box0)
 
-        self._tracker = get_object_tracker(dt=dt, x0=x0, model=self.model)
+        self._tracker = get_single_object_tracker(model=self.model, x0=x0)
 
     def predict(self):
         self.steps_alive += 1
@@ -77,17 +100,11 @@ class Tracker:
         z = self.model.box_to_z(detection.box)
         self._tracker.update(z)
 
-        if detection.feature is not None:
-            self.update_feature(detection.feature)
+        self.score = self.update_score_fn(old=self.score, new=detection.score)
+        self.feature = self.update_feature_fn(old=self.feature, new=detection.feature)
 
         # reduce the staleness of a tracker, faster than growth rate
         self.unstale(rate=3)
-
-    def update_feature(self, feature: Vector, alpha: float = 0.1):
-        if self.feature is None:
-            self.feature = np.array(feature)
-        else:
-            self.feature = alpha * np.array(feature) + (1 - alpha) * self.feature
 
     def stale(self, rate: float = 1.0):
         self.staleness += 1
@@ -98,16 +115,16 @@ class Tracker:
         return self.staleness
 
     @property
-    def is_stale(self):
+    def is_stale(self) -> bool:
         return self.staleness >= self.max_staleness
 
     @property
-    def is_invalid(self):
+    def is_invalid(self) -> bool:
         try:
             has_nans = any(np.isnan(self._tracker.x))
             return has_nans
         except Exception as e:
-            logger.trace('invalid tracker, exception: %s' % str(e))
+            logger.warning('invalid tracker, exception: %s' % str(e))
             return True
 
     @property
@@ -115,8 +132,8 @@ class Tracker:
         return self.model.x_to_box(self._tracker.x)
 
     def __repr__(self):
-        fmt = "(box) %s\n (status) %s\n(staleness) %d"
-        return fmt % (self.box, self.status, self.staleness)
+        fmt = "box: %s\tstaleness: %d"
+        return fmt % (self.box, self.staleness)
 
 
 """ assignment cost calculation & matching methods """
@@ -125,7 +142,7 @@ class Tracker:
 def match_by_cost_matrix(trackers: Sequence[Tracker],
                          detections: Sequence[Detection],
                          min_iou: float = 0.1,
-                         **kwargs):
+                         **kwargs) -> np.ndarray:
     if len(trackers) == 0 or len(detections) == 0:
         return []
 
@@ -137,7 +154,7 @@ def match_by_cost_matrix(trackers: Sequence[Tracker],
     return np.array(ret)
 
 
-def _sequence_has_none(seq):
+def _sequence_has_none(seq: Sequence[Any]) -> Sequence[Any]:
     return any(r is None for r in seq)
 
 
@@ -184,7 +201,7 @@ class MatchingFunction:
 
 
 class BasicMatchingFunction(MatchingFunction):
-    """ It implements the most basic matching function, taking
+    """ class implements the most basic matching function, taking
     detections boxes and optional feature similarity into account """
 
     def __init__(self, min_iou: float = 0.1,
@@ -211,7 +228,7 @@ class MultiObjectTracker:
                  matching_fn: Optional[MatchingFunction] = None,
                  tracker_kwargs: dict = None,
                  matching_fn_kwargs: dict = None,
-                 active_tracks_kwargs: dict = None):
+                 active_tracks_kwargs: dict = None) -> None:
         """
             model_spec specifies the dimension and order for position and size of the object
             matching_fn determines the strategy on which the trackers and detections are assigned.
@@ -229,7 +246,7 @@ class MultiObjectTracker:
             self.model_spec = ModelPreset[model_spec].value
         else:
             raise NotImplementedError('unsupported motion model %s' % str(model_spec))
-        logger.trace('using model spec: %s' % str(self.model_spec))
+        logger.debug('using model spec: %s' % str(self.model_spec))
 
         self.matching_fn = matching_fn
         self.matching_fn_kwargs = matching_fn_kwargs if matching_fn_kwargs is not None else {}
@@ -238,16 +255,16 @@ class MultiObjectTracker:
 
         # kwargs to be passed to each single object tracker
         self.tracker_kwargs = tracker_kwargs if tracker_kwargs is not None else {}
-        logger.trace('using tracker_kwargs: %s' % str(self.tracker_kwargs))
+        logger.debug('using tracker_kwargs: %s' % str(self.tracker_kwargs))
 
         # kwargs to be used when self.step returns active tracks
         self.active_tracks_kwargs = active_tracks_kwargs if active_tracks_kwargs is not None else {}
-        logger.trace('using active_tracks_kwargs: %s' % str(self.active_tracks_kwargs))
+        logger.debug('using active_tracks_kwargs: %s' % str(self.active_tracks_kwargs))
 
     def active_tracks(self,
                       max_staleness_to_positive_ratio: float = 3.0,
                       max_staleness: float = 999,
-                      min_steps_alive: int = -1):
+                      min_steps_alive: int = -1) -> Sequence[Track]:
         """ returns all active tracks after optional filtering by tracker steps count and staleness """
 
         tracks = []
@@ -256,18 +273,18 @@ class MultiObjectTracker:
             cond2 = tracker.staleness < max_staleness
             cond3 = tracker.steps_alive >= min_steps_alive
             if cond1 and cond2 and cond3:
-                tracks.append(Track(id=tracker.id, box=tracker.box))
+                tracks.append(Track(id=tracker.id, box=tracker.box, score=tracker.score))
 
-        logger.trace('active/all tracks: %d/%d' % (len(self.trackers), len(tracks)))
+        logger.debug('active/all tracks: %d/%d' % (len(self.trackers), len(tracks)))
         return tracks
 
-    def cleanup_trackers(self):
+    def cleanup_trackers(self) -> None:
         count_before = len(self.trackers)
         self.trackers = [t for t in self.trackers if not (t.is_stale or t.is_invalid)]
         count_after = len(self.trackers)
-        logger.trace('deleted %s/%s trackers' % (count_before - count_after, count_before))
+        logger.debug('deleted %s/%s trackers' % (count_before - count_after, count_before))
 
-    def step(self, detections: Sequence[Detection]):
+    def step(self, detections: Sequence[Detection]) -> Sequence[Track]:
         """ the method matches the new detections with existing trackers,
         creates new trackers if necessary and performs the cleanup.
         Returns the active tracks after active filtering applied """
@@ -275,9 +292,9 @@ class MultiObjectTracker:
         # filter out empty detections
         detections = [det for det in detections if det.box is not None]
 
-        logger.trace('step with %d detections' % len(detections))
+        logger.debug('step with %d detections' % len(detections))
         matches = self.matching_fn(self.trackers, detections)
-        logger.trace('matched %d pairs' % len(matches))
+        logger.debug('matched %d pairs' % len(matches))
 
         # all trackers: predict
         for t in self.trackers:

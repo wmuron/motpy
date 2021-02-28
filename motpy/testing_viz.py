@@ -1,8 +1,9 @@
 import numpy as np
-from loguru import logger
-
-from motpy.core import Track, Detection
+from motpy.core import Detection, Track, setup_logger
 from motpy.testing import CANVAS_SIZE, data_generator
+
+logger = setup_logger(__name__)
+
 
 try:
     import cv2

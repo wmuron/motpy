@@ -7,9 +7,8 @@ import time
 import cv2
 import fire
 import pandas as pd
-from loguru import logger
-
 from motpy import Box, Detection, MultiObjectTracker
+from motpy.core import setup_logger
 from motpy.testing_viz import draw_detection, draw_track
 
 """
@@ -27,6 +26,7 @@ from motpy.testing_viz import draw_detection, draw_track
 
 """
 
+logger = setup_logger(__name__, is_main=True)
 
 COL_NAMES = ['frame_idx', 'id', 'bb_left', 'bb_top', 'bb_width', 'bb_height', 'conf', 'x', 'y', 'z']
 
@@ -114,7 +114,7 @@ def run(
             frame_idx, detections = next(dets_gen)
         except Exception as e:
             logger.warning('finished reading the sequence')
-            logger.trace(f'exception: {e}')
+            logger.debug(f'exception: {e}')
             break
 
         # read the frame for a given index

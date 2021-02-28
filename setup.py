@@ -5,9 +5,9 @@ with open("README.md", "r") as fh:
 
 setup(
     name='motpy',
-    version='0.0.8',
+    version='0.0.9',
     url='https://github.com/wmuron/motpy.git',
-    download_url='https://github.com/wmuron/motpy/releases/tag/v0.0.7-alpha',
+    download_url='https://github.com/wmuron/motpy/releases/tag/v0.0.9-alpha',
     author='Wiktor Muron',
     author_email='wiktormuron@gmail.com',
     description='Library for track-by-detection multi object tracking implemented in python',
@@ -17,8 +17,7 @@ setup(
     python_requires='>3.6',
     install_requires=['numpy',
                       'scipy',
-                      'filterpy',
-                      'loguru'],
+                      'filterpy'],
     license='MIT',
     keywords=['multi-object-tracking', 'object-tracking', 'kalman-filter'],
     classifiers=[
