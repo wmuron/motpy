@@ -31,11 +31,12 @@ def demo_tracking_visualization(num_steps: int = 1000, num_objects: int = 10):
         active_tracks = tracker.step(detections=detections)
 
         for track in active_tracks:
+            score = track.score if track.score is not None else -1
             img = draw_rectangle(img, track.box, color=(10, 10, 220), thickness=5)
-            img = draw_text(img, track.id, above_box=track.box)
+            img = draw_text(img, f'{track.id[:8]}... ({score:.2f})', above_box=track.box)
 
         for det in detections:
-            img = draw_rectangle(img, det.box, color=(10, 220, 20), thickness=2)
+            img = draw_rectangle(img, det.box, color=(10, 220, 20), thickness=1)
 
         cv2.imshow('preview', img)
         # stop the demo by pressing q

@@ -1,8 +1,6 @@
 import math
 import random
 
-import numpy as np
-
 from motpy.core import Detection
 
 CANVAS_SIZE = 1000
@@ -73,11 +71,11 @@ class Actor():
             self.disappear_steps -= 1
 
         # wrap boxes and features as detections
-        det_gt = Detection(box=box_gt, score=1.0, feature=self.color)
+        det_gt = Detection(box=box_gt, score=1., feature=self.color)
 
         feature_pred = [random.gauss(0, 5) + v for v in self.color]
         det_pred = Detection(box=box_pred,
-                             score=random.random() / 2 + 0.5,
+                             score=random.uniform(0.5, 1.),
                              feature=feature_pred)
 
         return det_gt, det_pred

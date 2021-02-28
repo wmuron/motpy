@@ -5,9 +5,11 @@ import pytest
 from motpy.core import Detection, setup_logger
 from motpy.testing import data_generator
 from motpy.tracker import (BasicMatchingFunction, MultiObjectTracker,
-                           match_by_cost_matrix)
+                           exponential_moving_average_fn, match_by_cost_matrix)
+from numpy.testing import assert_array_equal
 
 logger = setup_logger(__name__)
+
 
 @pytest.mark.parametrize("num_objects", [2, 5])
 @pytest.mark.parametrize("order_pos", [0, 1, 2])
@@ -81,3 +83,17 @@ def test_tracker_diverges():
     tracker.step([Detection(box=box)])
     assert len(tracker.trackers) == 1
     assert tracker.active_tracks()[0].id != first_track_id
+
+
+def test_exponential_moving_average():
+    update_fn = exponential_moving_average_fn(0.5)
+
+    # scalars
+    assert update_fn(None, 100.) == 100.
+    assert update_fn(50., None) == 50.
+    assert update_fn(50., 100.) == 75.
+
+    # sequences
+    assert_array_equal(update_fn(None, [100., 50]), [100., 50])
+    assert_array_equal(update_fn([80., 50], None), [80., 50])
+    assert_array_equal(update_fn(np.array([80., 100]), [90, 90]), [85., 95])

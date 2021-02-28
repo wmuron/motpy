@@ -1,13 +1,10 @@
-
 from enum import Enum
 
 import numpy as np
 from filterpy.common import Q_discrete_white_noise
-from filterpy.kalman import KalmanFilter
-from motpy.core import Box, Detection, Track, Vector
-from motpy.metrics import angular_similarity, calculate_iou
 from scipy.linalg import block_diag
 
+from motpy.core import Box, Vector
 
 """ The list of model presets below is not complete, more reasonable
 options will be added in the future """
@@ -140,7 +137,7 @@ class Model:
 
     def box_to_x(self, box: Box) -> Vector:
         """ box is expected to be in [xmin, ymin, zmin, ..., xmax, ymax, zmax, ...] format
-        for 2d1ord+2d0ord case returns np.array([cx, 0, 0, cy, 0, 0, w, h]) """
+        for 2d-1ord+2d-0ord case returns np.array([cx, 0, 0, cy, 0, 0, w, h]) """
         x = np.zeros((self.state_length,))
         x[self.z_in_x_idxs] = self.box_to_z(box)
         return x

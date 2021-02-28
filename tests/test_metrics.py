@@ -1,8 +1,8 @@
 
 import numpy as np
-
 from motpy.metrics import angular_similarity, calculate_iou
-from utils import assert_almost_equal
+
+from utils import assert_almost_equal, current_milli_time
 
 
 def test_ious():
@@ -21,6 +21,19 @@ def test_ious():
           [30, 30, 30, 90, 90, 90]]
     iou_3d = calculate_iou(b1, b2, dim=3)
     assert_almost_equal(iou_3d, [[0.7811, 0]])
+
+
+def test_ious_large():
+    # benchmarking test
+    t = current_milli_time()
+    for _ in range(100):
+        b1 = np.random.randn(30, 4)
+        b2 = np.random.randn(20, 4)
+        iou = calculate_iou(b1, b2, dim=2)
+        assert iou.shape == (30, 20)
+
+    tdiff = current_milli_time() - t
+    assert tdiff < 100
 
 
 def test_angular_similarity():

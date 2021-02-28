@@ -15,14 +15,13 @@ Box = np.ndarray
 Vector = np.ndarray
 
 # Track is meant as an output from the object tracker
-Track = collections.namedtuple('Track', 'id box')
+Track = collections.namedtuple('Track', 'id box score')
 
 # numpy/opencv image alias
 NpImage = np.ndarray
 
 
 class Detection:
-    # Detection is to be an input the the tracker
     def __init__(
             self,
             box: Box,
@@ -33,10 +32,7 @@ class Detection:
         self.feature = feature
 
     def __repr__(self):
-        fmt = "(detection: box=%s, score=%s, feature=%s)"
-        return fmt % (str(self.box),
-                      str(self.score) or 'none',
-                      str(self.feature) or 'none')
+        return f'Detection(box={self.box}, score={self.score:.5f}, feature={self.feature})'
 
 
 """ utils """
@@ -51,17 +47,17 @@ def setup_logger(name: str,
     if level is None:
         level = os.getenv(envvar_name)
         if level is None:
-            print(f'[{name}] fallback to INFO log_level; set {envvar_name} envvar to override')
             level = 'INFO'
         else:
             print(f'[{name}] envvar {envvar_name} sets log level to {level}')
 
     level_val = logging.getLevelName(level)
 
-    if is_main:
-        logging.basicConfig(stream=sys.stdout, level=level_val, format=LOG_FORMAT)
-
     logger = logging.getLogger(name)
     logger.setLevel(level_val)
+    logger.addHandler(logging.NullHandler())
+
+    if is_main:
+        logging.basicConfig(stream=sys.stdout, level=level_val, format=LOG_FORMAT)
 
     return logger

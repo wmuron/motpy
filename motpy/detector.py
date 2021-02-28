@@ -1,6 +1,5 @@
 from typing import Sequence
 
-import numpy as np
 from motpy.core import NpImage
 from motpy.tracker import Detection
 
