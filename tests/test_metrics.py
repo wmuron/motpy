@@ -20,6 +20,7 @@ def test_ious():
     b2 = [[10, 11, 10.2, 21, 19.9, 20.3],
           [30, 30, 30, 90, 90, 90]]
     iou_3d = calculate_iou(b1, b2, dim=3)
+
     assert_almost_equal(iou_3d, [[0.7811, 0]])
 
 
