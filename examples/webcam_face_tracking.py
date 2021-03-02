@@ -3,7 +3,7 @@ from typing import Sequence
 from urllib.request import urlretrieve
 
 import cv2
-from motpy import Detection, MultiObjectTracker, NpImage, Box
+from motpy import Detection, MultiObjectTracker, NpImage
 from motpy.core import setup_logger
 from motpy.detector import BaseObjectDetector
 from motpy.testing_viz import draw_detection, draw_track
