@@ -1,12 +1,7 @@
 
 import numpy as np
-import scipy
-from filterpy.common import Q_discrete_white_noise
-from filterpy.kalman import KalmanFilter
-from motpy.core import Detection, setup_logger
+from motpy.core import setup_logger
 from motpy.model import Model
-from motpy.tracker import MultiObjectTracker, match_by_cost_matrix
-from scipy.linalg import block_diag
 
 from utils import assert_almost_equal
 

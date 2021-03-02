@@ -58,7 +58,7 @@ class FaceDetector(BaseObjectDetector):
                 xmax = int(detections[0, 0, i, 5] * image.shape[1])
                 ymax = int(detections[0, 0, i, 6] * image.shape[0])
                 out_detections.append(Detection(box=[xmin, ymin, xmax, ymax], score=confidence))
-            
+
         return out_detections
 
 
