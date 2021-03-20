@@ -123,7 +123,65 @@ Feel free to tune the parameter of Q and R matrix builders to better fit your us
 - [ ] Performance optimization
 - [ ] Multiple object classes support
 
+## Using ROS2 Foxy
+
+Writer : Ar-Ray(https://github.com/Ar-Ray-code)
+
+#### What's ROS2 ?
+
+- In [docs.ros.org](https://docs.ros.org/en/foxy/index.html), it is written as shown below.
+
+```txt
+The Robot Operating System (ROS) is a set of software libraries and tools for building robot applications. From drivers to state-of-the-art algorithms, and with powerful developer tools, ROS has what you need for your next robotics project. And it’s all open source.
+
+Since ROS was started in 2007, a lot has changed in the robotics and ROS community. The goal of the ROS 2 project is to adapt to these changes, leveraging what is great about ROS 1 and improving what isn’t.
+```
+
+#### Dependencies
+
+- ROS2-Foxy
+- OpenCV4.2
+- [darknet_ros_msgs](https://github.com/ajaypaul2008/darknet_ros/tree/foxy/darknet_ros_msgs)
+
+
+
+#### How to use ?
+
+Details will be explained on the blog (Japanese).
+
+1. Install ROS2-Foxy.
+
+2. Create your ros2 workspace. 
+
+3. clone darknet_ros:foxy
+
+4. Build and install `darknet_ros_msgs`
+
+5. Load ros2 and workspace environment.
+
+6. Clone this repository and checkout `foxy` branch.
+
+7. Move `motpy` directory.
+
+8. `python3 ros2/face_tracking_ros.py` to run program.
+
+9. If you want to receive Webcam input, execute `v4l2_camera_node`
+
+   `$ ros2 run v4l2_camera v4l2_camera_node __ns:=/color`
+
+   
+
+Object tracking can be confirmed by `bounding_boxes[x].id`.
+
+![ros2_example](assets/ros2_example.png)
+
+
+
 ## References, papers, ideas and acknowledgements
 - https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python/
 - http://elvera.nue.tu-berlin.de/files/1517Bochinski2017.pdf
 - https://arxiv.org/abs/1602.00763
+
+#### About ROS2
+
+- https://github.com/ajaypaul2008/darknet_ros
