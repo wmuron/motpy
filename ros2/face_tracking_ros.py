@@ -26,26 +26,6 @@ WEIGHTS_PATH = 'opencv_face_detector.caffemodel'
 CONFIG_URL = 'https://raw.githubusercontent.com/opencv/opencv/master/samples/dnn/face_detector/deploy.prototxt'
 CONFIG_PATH = 'deploy.prototxt'
 
-def draw_text2(img, text, above_box, color=(255, 255, 255)):
-    tl_pt = (int(above_box[0]), int(above_box[1]) - 7)
-    cv2.putText(img, text, tl_pt,
-                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=0.5, color=color)
-    return img
-
-def draw_rectangle2(img, box, color, thickness: int = 3):
-    img = cv2.rectangle(img, (int(box[0]), int(box[1])), (int(
-        box[2]), int(box[3])), color, thickness)
-    return img
-
-def draw_track2(img, track: Track, random_color: bool = True, fallback_color=(200, 20, 20)):
-    color = [ord(c) * ord(c) % 256 for c in track.id[:3]] if random_color else fallback_color
-    # print(track.id[:3])
-    print(int(track.box[0]), int(track.box[1]), int(track.box[2]), int(track.box[3]))
-    img = draw_rectangle2(img, track.box, color=color, thickness=5)
-    img = draw_text2(img, track.id[:5] + '...', above_box=track.box)
-    return img
-
 class FaceDetector(BaseObjectDetector):
     def __init__(self,
                  weights_url: str = WEIGHTS_URL,
@@ -94,7 +74,7 @@ class motpy2darknet(Node):
         self.dt = 1 / 15.0  # assume 15 fps
         self.tracker = MultiObjectTracker(dt=self.dt, model_spec=self.model_spec)
 
-        self.face_detector = FaceDetector()
+        self.motpy_detector = FaceDetector()
 
         ## RCLPY 
         super().__init__('motpy_ros')
@@ -140,7 +120,7 @@ class motpy2darknet(Node):
 
             # # run face detector on current frame
             
-            detections = self.face_detector.process_image(frame)
+            detections = self.motpy_detector.process_image(frame)
 
             self.tracker.step(detections)
             tracks = self.tracker.active_tracks(min_steps_alive=3)
