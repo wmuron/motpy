@@ -5,3 +5,5 @@ __pycache__/*
 .vscode/*
 build/*
 dist/*
+opencv_face_detector.caffemodel
+deploy.prototxt
