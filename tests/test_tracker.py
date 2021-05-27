@@ -46,7 +46,7 @@ def test_simple_tracking_objects(
         if i <= num_steps_warmup:
             continue
 
-        matches = match_by_cost_matrix(dets_gt, active_tracks)
+        matches = match_by_cost_matrix(active_tracks, dets_gt)
         for m in matches:
             gidx, tidx = m[0], m[1]
             track_id = active_tracks[tidx].id
