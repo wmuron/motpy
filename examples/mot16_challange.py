@@ -1,5 +1,3 @@
-
-
 import os
 import random
 import time
@@ -39,7 +37,7 @@ def read_video_frame(directory, frame_idx):
 def read_detections(path, drop_detection_prob: float = 0.0, add_detection_noise: float = 0.0):
     """ parses and converts MOT16 benchmark annotations to known [xmin, ymin, xmax, ymax] format """
     path = os.path.expanduser(path)
-    logger.debug('reading detections from %s' % path)
+    logger.debug(f'reading detections from {path}')
     if not os.path.isfile(path):
         raise ValueError('file does not exist')
 

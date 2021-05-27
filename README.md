@@ -14,7 +14,7 @@ Project is meant to provide a simple yet powerful baseline for multiple object t
     - seperately configurable system order for object position and size (currently 0th, 1st and 2nd order systems are allowed)
     - quite fast, more than realtime performance even on Raspberry Pi
 
-## Installation:
+## Installation
 
 ### Latest release
 
