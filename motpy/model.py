@@ -65,7 +65,7 @@ class Model:
         self.dim_box = 2 * max(self.dim_pos, self.dim_size)
 
         # precalculate utility indexes
-        self.pos_idxs, self.size_idxs, self.z_in_x_idxs, self.offset_idx = self._calc_idxs()
+        self.pos_idxs, self.vel_idxs, self.size_idxs, self.z_in_x_idxs, self.offset_idx = self._calc_idxs()
 
         # number of variables in model state
         self.state_length = self.dim_pos * (self.order_pos + 1) + \
@@ -80,13 +80,16 @@ class Model:
         pos_idxs = [pidx * (self.order_pos + 1)
                     for pidx in range(self.dim_pos)]
 
+        vel_idxs = [pidx * (self.order_pos + 1) + 1
+                    for pidx in range(self.dim_pos)]
+
         size_idxs = [self.dim_pos * (self.order_pos + 1) + sidx * (self.order_size + 1)
                      for sidx in range(self.dim_size)]
 
         # indexes of measured quantities (z) in state (x) vector
         z_in_x_idxs = np.concatenate((pos_idxs, size_idxs))
 
-        return np.array(pos_idxs), np.array(size_idxs), z_in_x_idxs, offset_idx
+        return np.array(pos_idxs), np.array(vel_idxs), np.array(size_idxs), z_in_x_idxs, offset_idx
 
     def build_F(self):
         """ returns constructed F matrix with specified positional

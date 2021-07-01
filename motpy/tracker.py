@@ -131,6 +131,10 @@ class Tracker:
     def box(self):
         return self.model.x_to_box(self._tracker.x)
 
+    @property
+    def velocity(self):
+        return self._tracker.x[self.model.vel_idxs]
+
     def __repr__(self):
         fmt = "box: %s\tstaleness: %d"
         return fmt % (self.box, self.staleness)
@@ -273,7 +277,7 @@ class MultiObjectTracker:
             cond2 = tracker.staleness < max_staleness
             cond3 = tracker.steps_alive >= min_steps_alive
             if cond1 and cond2 and cond3:
-                tracks.append(Track(id=tracker.id, box=tracker.box, score=tracker.score))
+                tracks.append(Track(id=tracker.id, box=tracker.box, score=tracker.score, v=tracker.velocity))
 
         logger.debug('active/all tracks: %d/%d' % (len(self.trackers), len(tracks)))
         return tracks

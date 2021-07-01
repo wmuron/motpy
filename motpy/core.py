@@ -15,7 +15,7 @@ Box = np.ndarray
 Vector = np.ndarray
 
 # Track is meant as an output from the object tracker
-Track = collections.namedtuple('Track', 'id box score')
+Track = collections.namedtuple('Track', 'id box score v')
 
 # numpy/opencv image alias
 NpImage = np.ndarray
