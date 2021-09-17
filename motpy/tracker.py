@@ -62,7 +62,8 @@ class SingleObjectTracker:
     def __init__(self,
                  max_staleness: float = 12.0,
                  smooth_score_gamma: float = 0.8,
-                 smooth_feature_gamma: float = 0.9):
+                 smooth_feature_gamma: float = 0.9,
+                 keep_last_class_ids: int = 30):
 
         self.id = str(uuid.uuid4())
         self.steps_alive = 1
@@ -75,6 +76,10 @@ class SingleObjectTracker:
 
         self.score = None
         self.feature = None
+        self.class_id = None
+
+        self.keep_last_class_ids = keep_last_class_ids
+        self.class_ids = []
 
         logger.debug('creating new tracker {self.id}')
 
@@ -91,15 +96,25 @@ class SingleObjectTracker:
         self._predict()
         self.steps_alive += 1
 
-    def _update(self, detection: Detection):
+    def update_class_id(self, class_id: int):
+        """ find most frequent prediction of class_id in recent K class_ids """
+        if class_id is None:
+            return None
+
+        self.class_ids.append(class_id)
+        self.class_ids = self.class_ids[-self.keep_last_class_ids:]
+        return max(set(self.class_ids), key=self.class_ids.count)
+
+    def _update_box(self, detection: Detection):
         raise NotImplementedError()
 
     def update(self, detection: Detection):
-        # KF tracker update for position and size
-        self._update(detection)
+        # box update
+        self._update_box(detection)
 
         self.steps_positive += 1
 
+        self.class_id = self.update_class_id(detection.class_id)
         self.score = self.update_score_fn(old=self.score, new=detection.score)
         self.feature = self.update_feature_fn(old=self.feature, new=detection.feature)
 
@@ -118,7 +133,7 @@ class SingleObjectTracker:
         return self.staleness >= self.max_staleness
 
     def __repr__(self):
-        return f'box: {str(self.box())}\tstaleness: {self.staleness:.2f}'
+        return f'(box: {str(self.box())}, score: {self.score}, class_id: {self.class_id}, staleness: {self.staleness:.2f})'
 
 
 class KalmanTracker(SingleObjectTracker):
@@ -144,7 +159,7 @@ class KalmanTracker(SingleObjectTracker):
     def _predict(self):
         self._tracker.predict()
 
-    def _update(self, detection: Detection):
+    def _update_box(self, detection: Detection):
         z = self.model.box_to_z(detection.box)
         self._tracker.update(z)
 
@@ -176,7 +191,7 @@ class SimpleTracker(SingleObjectTracker):
     def _predict(self):
         pass
 
-    def _update(self, detection: Detection):
+    def _update_box(self, detection: Detection):
         self._box = self.update_box_fn(old=self._box, new=detection.box)
 
     def box(self):

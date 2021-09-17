@@ -92,6 +92,20 @@ def test_tracker_diverges():
     assert mot.active_tracks()[0].id != first_track_id
 
 
+def test_class_smoothing():
+    box = np.array([0, 0, 10, 10])
+    mot = MultiObjectTracker(dt=0.1)
+    mot.step([Detection(box=box, class_id=1)])
+    mot.step([Detection(box=box, class_id=2)])
+    mot.step([Detection(box=box, class_id=2)])
+    mot.step([Detection(box=box, class_id=2)])
+    assert mot.trackers[0].class_id == 2
+    mot.step([Detection(box=box, class_id=1)])
+    mot.step([Detection(box=box, class_id=1)])
+    mot.step([Detection(box=box, class_id=1)])
+    assert mot.trackers[0].class_id == 1
+
+
 def test_exponential_moving_average():
     update_fn = exponential_moving_average_fn(0.5)
 
