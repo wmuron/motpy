@@ -20,7 +20,7 @@ env-install:
 clean:
 	autoflake --in-place --remove-unused-variables ./motpy/*.py ./tests/*.py
 
-check:
+static-check:
 	mypy --ignore-missing-imports motpy
 
 demo-mot16:

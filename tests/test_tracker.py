@@ -33,7 +33,7 @@ def test_simple_tracking_objects(
     model_spec = {'order_pos': order_pos, 'dim_pos': 2, 'order_size': 0, 'dim_size': 2}
 
     matching_fn = BasicMatchingFunction(feature_similarity_beta=feature_similarity_beta)
-    tracker = MultiObjectTracker(
+    mot = MultiObjectTracker(
         dt=dt,
         model_spec=model_spec,
         matching_fn=matching_fn)
@@ -41,18 +41,18 @@ def test_simple_tracking_objects(
     for i in range(num_steps):
         dets_gt, dets_pred = next(gen)
         detections = [d for d in dets_pred if d.box is not None]
-        active_tracks = tracker.step(detections=detections)
+        _ = mot.step(detections=detections)
 
         if i <= num_steps_warmup:
             continue
 
-        matches = match_by_cost_matrix(active_tracks, dets_gt)
+        matches = match_by_cost_matrix(mot.trackers, dets_gt)
         for m in matches:
             gidx, tidx = m[0], m[1]
-            track_id = active_tracks[tidx].id
+            track_id = mot.trackers[tidx].id
             history[gidx].append(track_id)
 
-        assert len(tracker.trackers) == num_objects
+        assert len(mot.trackers) == num_objects
 
     count_frames = (num_steps - num_steps_warmup)
     for gid in range(num_objects):

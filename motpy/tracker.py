@@ -1,6 +1,6 @@
 import uuid
 from collections.abc import Iterable
-from typing import Any, Optional, Sequence, Union
+from typing import Any, List, Optional, Sequence, Union
 
 import numpy as np
 import scipy
@@ -154,8 +154,8 @@ def match_by_cost_matrix(trackers: Sequence[Tracker],
     return np.array(ret)
 
 
-def _sequence_has_none(seq: Sequence[Any]) -> Sequence[Any]:
-    return any(r is None for r in seq)
+def _sequence_has_none(seq: Sequence[Any]) -> bool:
+    return any([r is None for r in seq])
 
 
 def cost_matrix_iou_feature(trackers: Sequence[Tracker],
@@ -238,7 +238,7 @@ class MultiObjectTracker:
         """
 
         self.dt = dt
-        self.trackers = []
+        self.trackers: List[Tracker] = []
 
         if isinstance(model_spec, dict):
             self.model_spec = model_spec
