@@ -8,7 +8,10 @@ from motpy.testing_viz import draw_rectangle, draw_text, image_generator
 logger = setup_logger(__name__, 'DEBUG', is_main=True)
 
 
-def demo_tracking_visualization(model_spec=ModelPreset.constant_acceleration_and_static_box_size_2d.value, num_steps: int = 1000, num_objects: int = 20):
+def demo_tracking_visualization(
+        model_spec=ModelPreset.constant_acceleration_and_static_box_size_2d.value,
+        num_steps: int = 1000,
+        num_objects: int = 20):
     gen = image_generator(
         num_steps=num_steps,
         num_objects=num_objects,
@@ -30,13 +33,13 @@ def demo_tracking_visualization(model_spec=ModelPreset.constant_acceleration_and
 
         t0 = time.time()
         active_tracks = tracker.step(detections=detections)
-        elapsed = time.time() - t0
-        logger.debug(f'tracking elapsed time: {elapsed} ms')
+        elapsed = (time.time() - t0) * 1000.
+        logger.debug(f'tracking elapsed time: {elapsed:.3f} ms')
 
         for track in active_tracks:
             score = track.score if track.score is not None else -1
             img = draw_rectangle(img, track.box, color=(10, 10, 220), thickness=5)
-            img = draw_text(img, f'{track.id[:8]}... ({score:.2f})', above_box=track.box)
+            img = draw_text(img, f'{track.id[:8]}... ({score:.2f})', pos=track.box)
 
         for det in detections:
             img = draw_rectangle(img, det.box, color=(10, 220, 20), thickness=1)

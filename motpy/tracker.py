@@ -1,6 +1,6 @@
 import uuid
 from collections.abc import Iterable
-from typing import Any, List, Optional, Sequence, Type, Union
+from typing import Any, Callable, List, Optional, Sequence, Type, Union
 
 import numpy as np
 import scipy
@@ -13,7 +13,7 @@ from motpy.model import Model, ModelPreset
 logger = setup_logger(__name__)
 
 
-def get_single_object_tracker(model: Model, x0: Optional[Vector] = None) -> KalmanFilter:
+def get_kalman_object_tracker(model: Model, x0: Optional[Vector] = None) -> KalmanFilter:
     """ returns Kalman-based tracker based on a specified motion model spec.
         e.g. for spec = {'order_pos': 1, 'dim_pos': 2, 'order_size': 0, 'dim_size': 1}
         we expect the following setup:
@@ -39,7 +39,7 @@ def get_single_object_tracker(model: Model, x0: Optional[Vector] = None) -> Kalm
 DEFAULT_MODEL_SPEC = ModelPreset.constant_velocity_and_static_box_size_2d.value
 
 
-def exponential_moving_average_fn(gamma: float) -> Any:
+def exponential_moving_average_fn(gamma: float) -> Callable:
     def fn(old, new):
         if new is None:
             return old
@@ -139,7 +139,7 @@ class KalmanTracker(SingleObjectTracker):
         if x0 is None:
             x0 = self.model.box_to_x(box0)
 
-        self._tracker = get_single_object_tracker(model=self.model, x0=x0)
+        self._tracker = get_kalman_object_tracker(model=self.model, x0=x0)
 
     def _predict(self):
         self._tracker.predict()
