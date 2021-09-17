@@ -22,7 +22,7 @@ def calculate_iou(bboxes1, bboxes2, dim: int = 2):
         val_b1 *= coords_b1[d + dim] - coords_b1[d]
         val_b2 *= coords_b2[d + dim] - coords_b2[d]
 
-    iou = val_inter / (val_b1 + np.transpose(val_b2) - val_inter + EPS)
+    iou = val_inter / (np.clip(val_b1 + np.transpose(val_b2) - val_inter, a_min=0, a_max=None) + EPS)
     return iou
 
 
