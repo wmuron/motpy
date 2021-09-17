@@ -1,6 +1,4 @@
-
 import cv2
-import motpy
 from motpy import ModelPreset, MultiObjectTracker
 from motpy.core import setup_logger
 from motpy.testing_viz import draw_rectangle, draw_text, image_generator

@@ -1,6 +1,8 @@
 import numpy as np
 from scipy.spatial.distance import cdist
 
+EPS = 1e-7
+
 
 def calculate_iou(bboxes1, bboxes2, dim: int = 2):
     """ expected bboxes size: (-1, 2*dim) """
@@ -20,7 +22,7 @@ def calculate_iou(bboxes1, bboxes2, dim: int = 2):
         val_b1 *= coords_b1[d + dim] - coords_b1[d]
         val_b2 *= coords_b2[d + dim] - coords_b2[d]
 
-    iou = val_inter / (val_b1 + np.transpose(val_b2) - val_inter)
+    iou = val_inter / (val_b1 + np.transpose(val_b2) - val_inter + EPS)
     return iou
 
 

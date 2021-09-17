@@ -1,5 +1,3 @@
-
-
 import os
 import random
 import time
@@ -7,13 +5,11 @@ import time
 import cv2
 import fire
 import pandas as pd
-from motpy import Box, Detection, MultiObjectTracker
+from motpy import Detection, MultiObjectTracker
 from motpy.core import setup_logger
 from motpy.testing_viz import draw_detection, draw_track
 
-"""
-
-    MOT16 tracking demo
+""" MOT16 tracking demo
 
     Usage:
         python examples/mot16_challange.py --dataset_root=~/Downloads/MOT16 --seq_id=11
@@ -22,9 +18,7 @@ from motpy.testing_viz import draw_detection, draw_track
     Also, since provided by MOT16 `predictions` do not represent (IMO) the current state
     of modern detectors, the demo utilizes ground truth + noise as input to the tracker;
     feel free to use `sel=det` to check the 'real' MOT16 predictions, but keep in mind that
-    tracker is not optimized at all for such noisy predictions.
-
-"""
+    tracker is not optimized at all for such noisy predictions. """
 
 logger = setup_logger(__name__, is_main=True)
 
@@ -43,7 +37,7 @@ def read_video_frame(directory, frame_idx):
 def read_detections(path, drop_detection_prob: float = 0.0, add_detection_noise: float = 0.0):
     """ parses and converts MOT16 benchmark annotations to known [xmin, ymin, xmax, ymax] format """
     path = os.path.expanduser(path)
-    logger.debug('reading detections from %s' % path)
+    logger.debug(f'reading detections from {path}')
     if not os.path.isfile(path):
         raise ValueError('file does not exist')
 
