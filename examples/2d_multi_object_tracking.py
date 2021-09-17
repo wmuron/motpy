@@ -39,7 +39,7 @@ def demo_tracking_visualization(
         for track in active_tracks:
             score = track.score if track.score is not None else -1
             img = draw_rectangle(img, track.box, color=(10, 10, 220), thickness=5)
-            img = draw_text(img, f'{track.id[:8]}... ({score:.2f})', pos=track.box)
+            img = draw_text(img, f'ID: {track.id[:8]} | S: {score:.1f} | C: {track.class_id}', pos=track.box)
 
         for det in detections:
             img = draw_rectangle(img, det.box, color=(10, 220, 20), thickness=1)
