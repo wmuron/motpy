@@ -308,9 +308,9 @@ class MultiObjectTracker:
             self.tracker_clss = KalmanTracker
             self.tracker_kwargs['model_kwargs'] = ModelPreset[model_spec].value
         else:
-            raise NotImplementedError('unsupported motion model %s' % str(model_spec))
+            raise NotImplementedError(f'unsupported motion model {model_spec}')
 
-        logger.debug('using single tracker kwargs: %s' % str(self.tracker_kwargs))
+        logger.debug(f'using single tracker of class: {self.tracker_clss} with kwargs: {self.tracker_kwargs}')
 
         self.matching_fn = matching_fn
         self.matching_fn_kwargs = matching_fn_kwargs if matching_fn_kwargs is not None else {}

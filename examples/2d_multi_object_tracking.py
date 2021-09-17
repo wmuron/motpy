@@ -8,7 +8,7 @@ from motpy.testing_viz import draw_rectangle, draw_text, image_generator
 logger = setup_logger(__name__, 'DEBUG', is_main=True)
 
 
-def demo_tracking_visualization(num_steps: int = 1000, num_objects: int = 20):
+def demo_tracking_visualization(model_spec=ModelPreset.constant_acceleration_and_static_box_size_2d.value, num_steps: int = 1000, num_objects: int = 20):
     gen = image_generator(
         num_steps=num_steps,
         num_objects=num_objects,
@@ -16,9 +16,6 @@ def demo_tracking_visualization(num_steps: int = 1000, num_objects: int = 20):
         miss_prob=0.33,
         disappear_prob=0.00,
         det_err_sigma=3.33)
-
-    # model_spec = ModelPreset.constant_acceleration_and_static_box_size_2d.value
-    model_spec = None
 
     dt = 1 / 24
     tracker = MultiObjectTracker(
