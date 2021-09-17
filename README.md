@@ -4,9 +4,10 @@ Project is meant to provide a simple yet powerful baseline for multiple object t
 
 ![2D tracking preview](assets/mot16_challange.gif)
 
-*video source: https://motchallenge.net/data/MOT16/ - sequence 11*
+_video source: <https://motchallenge.net/data/MOT16/> - sequence 11_
 
 ## Features
+
     - tracking by detection paradigm
     - IOU + (optional) feature similarity matching strategy
     - Kalman filter used to model object trackers
@@ -25,12 +26,14 @@ pip install motpy
 #### Additional installation steps on Raspberry Pi
 
 You might need to have to install following dependencies on RPi platform:
+
 ```bash
 sudo apt-get install python-scipy
 sudo apt install libatlas-base-dev
 ```
 
 ### Develop
+
 ```bash
 git clone https://github.com/wmuron/motpy
 cd motpy 
@@ -52,16 +55,17 @@ make demo
 
 ### MOT16 challange tracking
 
- 1. Download MOT16 dataset from `https://motchallenge.net/data/MOT16/` and extract to `~/Downloads/MOT16` directory,
- 2. Type the command: 
-   ```bash
-   python examples/mot16_challange.py --dataset_root=~/Downloads/MOT16 --seq_id=11
-   ```
-   This will run a simplified example where a tracker processes artificially corrupted ground-truth bounding boxes from sequence 11; you can preview the expected results in the beginning of the README file.
+1.  Download MOT16 dataset from `https://motchallenge.net/data/MOT16/` and extract to `~/Downloads/MOT16` directory,
+2.  Type the command: 
+    ```bash
+    python examples/mot16_challange.py --dataset_root=~/Downloads/MOT16 --seq_id=11
+    ```
+    This will run a simplified example where a tracker processes artificially corrupted ground-truth bounding boxes from sequence 11; you can preview the expected results in the beginning of the README file.
 
 ### Face tracking on webcam
 
 Run the following command to start tracking your own face.
+
 ```bash
 python examples/webcam_face_tracking.py
 ```
@@ -119,17 +123,20 @@ The simplification used here is that the object position and size can be treated
 Feel free to tune the parameter of Q and R matrix builders to better fit your use case.
 
 ## Tested platforms
+
     - Linux (Ubuntu)
     - macOS (Catalina)
     - Raspberry Pi (4)
 
 ## Things to do
+
     - [x] Initial version
     - [ ] Documentation
     - [ ] Performance optimization
     - [ ] Multiple object classes support
 
 ## References, papers, ideas and acknowledgements
+
     - https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python/
     - http://elvera.nue.tu-berlin.de/files/1517Bochinski2017.pdf
     - https://arxiv.org/abs/1602.00763
