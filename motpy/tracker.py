@@ -1,6 +1,6 @@
 import uuid
 from collections.abc import Iterable
-from typing import Any, List, Optional, Sequence, Union
+from typing import Any, List, Optional, Sequence, Type, Union
 
 import numpy as np
 import scipy
@@ -81,9 +81,18 @@ class SingleObjectTracker:
     def box(self):
         raise NotImplementedError()
 
+    def is_invalid(self) -> bool:
+        raise NotImplementedError()
+
+    def _predict(self):
+        raise NotImplementedError()
+
     def predict(self):
         self._predict()
         self.steps_alive += 1
+
+    def _update(self, detection: Detection):
+        raise NotImplementedError()
 
     def update(self, detection: Detection):
         # KF tracker update for position and size
@@ -287,6 +296,7 @@ class MultiObjectTracker:
 
         # kwargs to be passed to each single object tracker
         self.tracker_kwargs = tracker_kwargs if tracker_kwargs is not None else {}
+        self.tracker_clss: Type[SingleObjectTracker] = None
 
         # translate model specification into single object tracker to be used
         if model_spec is None:
