@@ -52,7 +52,7 @@ make demo
 
 ### MOT16 challange tracking
 
- 1. Download MOT16 dataset from `https://motchallenge.net/data/MOT16/` and extract to `~Downloads/MOT16` directory,
+ 1. Download MOT16 dataset from `https://motchallenge.net/data/MOT16/` and extract to `~/Downloads/MOT16` directory,
  2. Type the command: 
    ```bash
    python examples/mot16_challange.py --dataset_root=~/Downloads/MOT16 --seq_id=11

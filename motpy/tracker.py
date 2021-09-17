@@ -161,7 +161,7 @@ class KalmanTracker(SingleObjectTracker):
 
 
 class SimpleTracker(SingleObjectTracker):
-    """ A simple tracker with no motion modeling and box update using exponential moving averega """
+    """ A simple single tracker with no motion modeling and box update using exponential moving averege """
 
     def __init__(self,
                  box0: Optional[Box] = None,
@@ -186,7 +186,7 @@ class SimpleTracker(SingleObjectTracker):
         try:
             return any(np.isnan(self._box))
         except Exception as e:
-            logger.warning('invalid tracker - exception: {e}')
+            logger.warning(f'invalid tracker - exception: {e}')
             return True
 
 

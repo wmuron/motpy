@@ -79,7 +79,7 @@ def test_tracker_diverges():
     first_track_id = mot.active_tracks()[0].id
 
     # check valid tracker
-    assert mot.trackers[0].is_invalid() == False
+    assert not mot.trackers[0].is_invalid()
     mot.trackers[0]._tracker.x[2] = np.nan
     assert mot.trackers[0].is_invalid()
 
