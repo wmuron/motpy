@@ -1,12 +1,14 @@
+import time
+
 import cv2
 from motpy import ModelPreset, MultiObjectTracker
 from motpy.core import setup_logger
 from motpy.testing_viz import draw_rectangle, draw_text, image_generator
 
-logger = setup_logger(__name__, is_main=True)
+logger = setup_logger(__name__, 'DEBUG', is_main=True)
 
 
-def demo_tracking_visualization(num_steps: int = 1000, num_objects: int = 10):
+def demo_tracking_visualization(num_steps: int = 1000, num_objects: int = 20):
     gen = image_generator(
         num_steps=num_steps,
         num_objects=num_objects,
@@ -15,18 +17,24 @@ def demo_tracking_visualization(num_steps: int = 1000, num_objects: int = 10):
         disappear_prob=0.00,
         det_err_sigma=3.33)
 
+    # model_spec = ModelPreset.constant_acceleration_and_static_box_size_2d.value
+    model_spec = None
+
     dt = 1 / 24
     tracker = MultiObjectTracker(
         dt=dt,
-        model_spec=ModelPreset.constant_acceleration_and_static_box_size_2d.value,
+        model_spec=model_spec,
         active_tracks_kwargs={'min_steps_alive': 2, 'max_staleness': 6},
         tracker_kwargs={'max_staleness': 12})
 
     for _ in range(num_steps):
         img, _, detections = next(gen)
-
         detections = [d for d in detections if d.box is not None]
+
+        t0 = time.time()
         active_tracks = tracker.step(detections=detections)
+        elapsed = time.time() - t0
+        logger.debug(f'tracking elapsed time: {elapsed} ms')
 
         for track in active_tracks:
             score = track.score if track.score is not None else -1

@@ -66,23 +66,26 @@ def test_simple_tracking_objects(
 def test_tracker_diverges():
     box = np.array([0, 0, 10, 10])
 
-    tracker = MultiObjectTracker(dt=0.1)
-    tracker.step([Detection(box=box)])
-    assert len(tracker.trackers) == 1
-    first_track_id = tracker.active_tracks()[0].id
+    mot = MultiObjectTracker(dt=0.1, model_spec=None)
+    mot.step([Detection(box=box)])
+    assert len(mot.trackers) == 1
+    first_track_id = mot.active_tracks()[0].id
 
     # check valid tracker
-    assert tracker.trackers[0].is_invalid == False
-    tracker.trackers[0]._tracker.x[2] = np.nan
-    assert tracker.trackers[0].is_invalid
+    # print(mot.trackers[0].is_invalid())
+    # print(mot.trackers[0].is_invalid())
 
-    tracker.cleanup_trackers()
-    assert len(tracker.trackers) == 0
+    assert mot.trackers[0].is_invalid() == False
+    mot.trackers[0]._tracker.x[2] = np.nan
+    assert mot.trackers[0].is_invalid()
+
+    mot.cleanup_trackers()
+    assert len(mot.trackers) == 0
 
     # pass invalid box
-    tracker.step([Detection(box=box)])
-    assert len(tracker.trackers) == 1
-    assert tracker.active_tracks()[0].id != first_track_id
+    mot.step([Detection(box=box)])
+    assert len(mot.trackers) == 1
+    assert mot.active_tracks()[0].id != first_track_id
 
 
 def test_exponential_moving_average():
@@ -97,3 +100,7 @@ def test_exponential_moving_average():
     assert_array_equal(update_fn(None, [100., 50]), [100., 50])
     assert_array_equal(update_fn([80., 50], None), [80., 50])
     assert_array_equal(update_fn(np.array([80., 100]), [90, 90]), [85., 95])
+
+
+# test_exponential_moving_average()
+test_tracker_diverges()
