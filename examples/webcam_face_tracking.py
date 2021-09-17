@@ -19,9 +19,9 @@ logger = setup_logger(__name__, 'DEBUG', is_main=True)
 
 
 WEIGHTS_URL = 'https://github.com/opencv/opencv_3rdparty/raw/dnn_samples_face_detector_20170830/res10_300x300_ssd_iter_140000.caffemodel'
-WEIGHTS_PATH = 'opencv_face_detector.caffemodel'
+WEIGHTS_PATH = '/tmp/opencv_face_detector.caffemodel'
 CONFIG_URL = 'https://raw.githubusercontent.com/opencv/opencv/master/samples/dnn/face_detector/deploy.prototxt'
-CONFIG_PATH = 'deploy.prototxt'
+CONFIG_PATH = '/tmp/deploy.prototxt'
 
 
 class FaceDetector(BaseObjectDetector):
