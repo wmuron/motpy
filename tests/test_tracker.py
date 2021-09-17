@@ -11,8 +11,11 @@ from numpy.testing import assert_array_equal
 logger = setup_logger(__name__)
 
 
+USE_SIMPLE_TRACKER = -1
+
+
 @pytest.mark.parametrize("num_objects", [2, 5])
-@pytest.mark.parametrize("order_pos", [0, 1, 2])
+@pytest.mark.parametrize("order_pos", [USE_SIMPLE_TRACKER, 0, 1, 2])
 @pytest.mark.parametrize("feature_similarity_beta", [None, 0.5])
 def test_simple_tracking_objects(
         num_objects: int,
@@ -30,7 +33,11 @@ def test_simple_tracking_objects(
 
     dt = 1 / fps
     num_steps_warmup = 1.0 * fps  # 1 second of warmup
-    model_spec = {'order_pos': order_pos, 'dim_pos': 2, 'order_size': 0, 'dim_size': 2}
+
+    if order_pos == USE_SIMPLE_TRACKER:
+        model_spec = None
+    else:
+        model_spec = {'order_pos': order_pos, 'dim_pos': 2, 'order_size': 0, 'dim_size': 2}
 
     matching_fn = BasicMatchingFunction(feature_similarity_beta=feature_similarity_beta)
     mot = MultiObjectTracker(
@@ -66,15 +73,12 @@ def test_simple_tracking_objects(
 def test_tracker_diverges():
     box = np.array([0, 0, 10, 10])
 
-    mot = MultiObjectTracker(dt=0.1, model_spec=None)
+    mot = MultiObjectTracker(dt=0.1)
     mot.step([Detection(box=box)])
     assert len(mot.trackers) == 1
     first_track_id = mot.active_tracks()[0].id
 
     # check valid tracker
-    # print(mot.trackers[0].is_invalid())
-    # print(mot.trackers[0].is_invalid())
-
     assert mot.trackers[0].is_invalid() == False
     mot.trackers[0]._tracker.x[2] = np.nan
     assert mot.trackers[0].is_invalid()
@@ -100,7 +104,3 @@ def test_exponential_moving_average():
     assert_array_equal(update_fn(None, [100., 50]), [100., 50])
     assert_array_equal(update_fn([80., 50], None), [80., 50])
     assert_array_equal(update_fn(np.array([80., 100]), [90, 90]), [85., 95])
-
-
-# test_exponential_moving_average()
-test_tracker_diverges()
