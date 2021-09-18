@@ -98,9 +98,7 @@ def test_class_smoothing():
     mot.step([Detection(box=box, class_id=1)])
     mot.step([Detection(box=box, class_id=2)])
     mot.step([Detection(box=box, class_id=2)])
-    mot.step([Detection(box=box, class_id=2)])
     assert mot.trackers[0].class_id == 2
-    mot.step([Detection(box=box, class_id=1)])
     mot.step([Detection(box=box, class_id=1)])
     mot.step([Detection(box=box, class_id=1)])
     assert mot.trackers[0].class_id == 1
