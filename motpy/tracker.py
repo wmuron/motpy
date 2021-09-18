@@ -1,6 +1,7 @@
 import uuid
 from collections.abc import Iterable
-from typing import Any, Callable, List, Optional, Sequence, Tuple, Type, Union
+from typing import (Any, Callable, Dict, List, Optional, Sequence, Tuple, Type,
+                    Union)
 
 import numpy as np
 import scipy
@@ -62,9 +63,7 @@ class SingleObjectTracker:
     def __init__(self,
                  max_staleness: float = 12.0,
                  smooth_score_gamma: float = 0.8,
-                 smooth_feature_gamma: float = 0.9,
-                 keep_last_class_ids: int = 30):
-
+                 smooth_feature_gamma: float = 0.9):
         self.id: str = str(uuid.uuid4())
         self.steps_alive: int = 1
         self.steps_positive: int = 1
@@ -78,8 +77,7 @@ class SingleObjectTracker:
         self.feature: Optional[Vector] = None
         self.class_id: Optional[int] = None
 
-        self.keep_last_class_ids: int = keep_last_class_ids
-        self.class_ids: List[int] = []
+        self.class_ids_counts: Dict = dict()
 
         logger.debug(f'creating new tracker {self.id}')
 
@@ -101,9 +99,12 @@ class SingleObjectTracker:
         if class_id is None:
             return None
 
-        self.class_ids.append(class_id)
-        self.class_ids = self.class_ids[-self.keep_last_class_ids:]
-        return max(set(self.class_ids), key=self.class_ids.count)
+        if class_id in self.class_ids_counts:
+            self.class_ids_counts[class_id] += 1
+        else:
+            self.class_ids_counts[class_id] = 1
+
+        return max(self.class_ids_counts, key=self.class_ids_counts.get)
 
     def _update_box(self, detection: Detection) -> None:
         raise NotImplementedError()
