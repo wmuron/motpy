@@ -27,7 +27,7 @@ COL_NAMES = ['frame_idx', 'id', 'bb_left', 'bb_top', 'bb_width', 'bb_height', 'c
 ALLOWED_SEQ_IDS = set(['02', '04', '05', '09', '10', '11', '13'])
 
 
-def read_video_frame(directory, frame_idx):
+def _read_video_frame(directory, frame_idx):
     """ reads MOT16 formatted frame """
     fname = f'{frame_idx:06}.jpg'
     fpath = os.path.join(directory, fname)
@@ -112,7 +112,7 @@ def run(
             break
 
         # read the frame for a given index
-        frame = read_video_frame(frames_dir, frame_idx)
+        frame = _read_video_frame(frames_dir, frame_idx)
         if frame is None:
             continue
 
