@@ -82,7 +82,7 @@ while True:
     if not ret:
         break
 
-    frame = cv2.resize(frame, fx=0.5, fy=0.5, dsize=None, interpolation=cv2.INTER_AREA)
+    frame = cv2.resize(frame, fx=0.75, fy=0.75, dsize=None, interpolation=cv2.INTER_AREA)
 
     t0 = time.time()
     boxes, labels = predict(frame, model, 'cuda', 0.5)
@@ -91,7 +91,7 @@ while True:
 
     detections = []
     for b, l in zip(boxes, labels):
-        detections.append(Detection(box=b, score=1.0, class_id=l))
+        detections.append(Detection(box=b, score=1.0))
 
     for det in detections:
         draw_detection(frame, det)
@@ -102,7 +102,7 @@ while True:
     logger.debug(f'tracking time: {elapsed:.3f} ms')
 
     for track in active_tracks:
-        draw_track(frame, track)
+        draw_track(frame, track, thickness=2, text_at_bottom=True)
 
     # print(detections)
     # print(frame)

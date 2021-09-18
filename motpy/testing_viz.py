@@ -29,10 +29,11 @@ def draw_text(img, text, pos, color=(255, 255, 255)):
     return img
 
 
-def draw_track(img, track: Track, random_color: bool = True, fallback_color=(200, 20, 20)):
+def draw_track(img, track: Track, random_color: bool = True, fallback_color=(200, 20, 20), thickness: int = 5, text_at_bottom: bool = False):
     color = [ord(c) * ord(c) % 256 for c in track.id[:3]] if random_color else fallback_color
-    img = draw_rectangle(img, track.box, color=color, thickness=5)
-    img = draw_text(img, track.id[:5] + '...', pos=track.box)
+    img = draw_rectangle(img, track.box, color=color, thickness=thickness)
+    pos = (track.box[0], track.box[3])  if text_at_bottom else (track.box[0], track.box[1]) 
+    img = draw_text(img, track.id[:5] + '...', pos=pos)
     return img
 
 
