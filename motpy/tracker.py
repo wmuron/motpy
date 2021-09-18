@@ -63,7 +63,9 @@ class SingleObjectTracker:
     def __init__(self,
                  max_staleness: float = 12.0,
                  smooth_score_gamma: float = 0.8,
-                 smooth_feature_gamma: float = 0.9):
+                 smooth_feature_gamma: float = 0.9,
+                 score0: Optional[float] = None,
+                 class_id0: Optional[int] = None):
         self.id: str = str(uuid.uuid4())
         self.steps_alive: int = 1
         self.steps_positive: int = 1
@@ -73,11 +75,11 @@ class SingleObjectTracker:
         self.update_score_fn: Callable = exponential_moving_average_fn(smooth_score_gamma)
         self.update_feature_fn: Callable = exponential_moving_average_fn(smooth_feature_gamma)
 
-        self.score: Optional[float] = None
+        self.score: Optional[float] = score0
         self.feature: Optional[Vector] = None
-        self.class_id: Optional[int] = None
 
-        self.class_ids_counts: Dict = dict()
+        self.class_id_counts: Dict = dict()
+        self.class_id: Optional[int] = self.update_class_id(class_id0)
 
         logger.debug(f'creating new tracker {self.id}')
 
@@ -99,18 +101,17 @@ class SingleObjectTracker:
         if class_id is None:
             return None
 
-        if class_id in self.class_ids_counts:
-            self.class_ids_counts[class_id] += 1
+        if class_id in self.class_id_counts:
+            self.class_id_counts[class_id] += 1
         else:
-            self.class_ids_counts[class_id] = 1
+            self.class_id_counts[class_id] = 1
 
-        return max(self.class_ids_counts, key=self.class_ids_counts.get)
+        return max(self.class_id_counts, key=self.class_id_counts.get)
 
     def _update_box(self, detection: Detection) -> None:
         raise NotImplementedError()
 
     def update(self, detection: Detection) -> None:
-        # box update
         self._update_box(detection)
 
         self.steps_positive += 1
@@ -384,7 +385,8 @@ class MultiObjectTracker:
         # not assigned detections: create new trackers POF
         assigned_det_idxs = set(matches[:, 1]) if len(matches) > 0 else []
         for det_idx in set(range(len(detections))).difference(assigned_det_idxs):
-            tracker = self.tracker_clss(box0=detections[det_idx].box, **self.tracker_kwargs)
+            det = detections[det_idx]
+            tracker = self.tracker_clss(box0=det.box, score0=det.score, class_id0=det.class_id, **self.tracker_kwargs)
             self.trackers.append(tracker)
 
         # unassigned trackers
