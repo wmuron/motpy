@@ -6,12 +6,14 @@ import numpy as np
 import torch
 import torchvision
 import torchvision.transforms as transforms
-from motpy import Detection, MultiObjectTracker
-# model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
-# model.eval()
+from motpy import Detection, ModelPreset, MultiObjectTracker
 from motpy.core import setup_logger
 from motpy.detector import BaseObjectDetector
 from motpy.testing_viz import draw_detection, draw_track
+
+# model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
+# model.eval()
+
 
 logger = setup_logger(__name__, 'DEBUG', is_main=True)
 
@@ -69,12 +71,20 @@ def predict(image, model, device, detection_threshold):
     return boxes, labels
 
 
+# TODO add scores
+# TODO refactor
+# TODO fix class aggregation
+# TODO specify list of classes
+# TODO specify max count of detections
+
+
 model = get_model('cuda')
 
 
 tracker = MultiObjectTracker(
-    dt=1 / 15., tracker_kwargs={'max_staleness': 15},
-    model_spec=None,
+    dt=1 / 15.,
+    tracker_kwargs={'max_staleness': 5},
+    model_spec=ModelPreset.constant_velocity_and_static_box_size_2d.value,
     matching_fn_kwargs={'min_iou': 0.25})
 
 while True:
@@ -91,7 +101,7 @@ while True:
 
     detections = []
     for b, l in zip(boxes, labels):
-        detections.append(Detection(box=b, score=1.0))
+        detections.append(Detection(box=b, score=1.0, class_id=l))
 
     for det in detections:
         draw_detection(frame, det)
