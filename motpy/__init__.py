@@ -1,4 +1,3 @@
-from .core import Box, Detection, NpImage, Track
+from .core import Box, Detection, NpImage, Track, track_to_string
 from .model import Model, ModelPreset
-from .tracker import (BasicMatchingFunction, MatchingFunction,
-                      MultiObjectTracker)
+from .tracker import IOUAndFeatureMatchingFunction, MultiObjectTracker

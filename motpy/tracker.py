@@ -1,3 +1,4 @@
+import time
 import uuid
 from collections.abc import Iterable
 from typing import (Any, Callable, Dict, List, Optional, Sequence, Tuple, Type,
@@ -96,7 +97,7 @@ class SingleObjectTracker:
         self._predict()
         self.steps_alive += 1
 
-    def update_class_id(self, class_id: int) -> int:
+    def update_class_id(self, class_id: Optional[int]) -> Optional[int]:
         """ find most frequent prediction of class_id in recent K class_ids """
         if class_id is None:
             return None
@@ -210,21 +211,6 @@ class SimpleTracker(SingleObjectTracker):
 """ assignment cost calculation & matching methods """
 
 
-def match_by_cost_matrix(trackers: Sequence[SingleObjectTracker],
-                         detections: Sequence[Detection],
-                         min_iou: float = 0.1,
-                         **kwargs) -> np.ndarray:
-    if len(trackers) == 0 or len(detections) == 0:
-        return []
-
-    cost_mat, iou_mat = cost_matrix_iou_feature(trackers, detections, **kwargs)
-    row_ind, col_ind = scipy.optimize.linear_sum_assignment(cost_mat)
-
-    # filter out low IOU matches
-    ret = [[r, c] for r, c in zip(row_ind, col_ind) if iou_mat[r, c] >= min_iou]
-    return np.array(ret)
-
-
 def _sequence_has_none(seq: Sequence[Any]) -> bool:
     return any([r is None for r in seq])
 
@@ -264,16 +250,32 @@ def cost_matrix_iou_feature(trackers: Sequence[SingleObjectTracker],
     return cost_mat, iou_mat
 
 
-class MatchingFunction:
+def match_by_cost_matrix(trackers: Sequence[SingleObjectTracker],
+                         detections: Sequence[Detection],
+                         min_iou: float = 0.1,
+                         **kwargs) -> np.ndarray:
+    if len(trackers) == 0 or len(detections) == 0:
+        return []
+
+    cost_mat, iou_mat = cost_matrix_iou_feature(trackers, detections, **kwargs)
+    row_ind, col_ind = scipy.optimize.linear_sum_assignment(cost_mat)
+
+    # filter out low IOU matches
+    ret = [[r, c] for r, c in zip(row_ind, col_ind) if iou_mat[r, c] >= min_iou]
+    return np.array(ret)
+
+
+class BaseMatchingFunction:
     def __call__(self,
                  trackers: Sequence[SingleObjectTracker],
                  detections: Sequence[Detection]) -> np.ndarray:
         raise NotImplementedError()
 
 
-class BasicMatchingFunction(MatchingFunction):
-    """ class implements the most basic matching function, taking
-    detections boxes and optional feature similarity into account """
+class IOUAndFeatureMatchingFunction(BaseMatchingFunction):
+    """ class implements the basic matching function, taking into account
+    detection boxes overlap measured using IOU metric and optional 
+    feature similarity measured with a specified metric """
 
     def __init__(self, min_iou: float = 0.1,
                  feature_similarity_fn=angular_similarity,
@@ -296,7 +298,7 @@ class BasicMatchingFunction(MatchingFunction):
 class MultiObjectTracker:
     def __init__(self, dt: float,
                  model_spec: Union[str, dict] = DEFAULT_MODEL_SPEC,
-                 matching_fn: Optional[MatchingFunction] = None,
+                 matching_fn: Optional[BaseMatchingFunction] = None,
                  tracker_kwargs: dict = None,
                  matching_fn_kwargs: dict = None,
                  active_tracks_kwargs: dict = None) -> None:
@@ -329,10 +331,10 @@ class MultiObjectTracker:
 
         logger.debug(f'using single tracker of class: {self.tracker_clss} with kwargs: {self.tracker_kwargs}')
 
-        self.matching_fn: BasicMatchingFunction = matching_fn
-        self.matching_fn_kwargs = matching_fn_kwargs if matching_fn_kwargs is not None else {}
+        self.matching_fn: BaseMatchingFunction = matching_fn
+        self.matching_fn_kwargs: Dict = matching_fn_kwargs if matching_fn_kwargs is not None else {}
         if self.matching_fn is None:
-            self.matching_fn = BasicMatchingFunction(**self.matching_fn_kwargs)
+            self.matching_fn = IOUAndFeatureMatchingFunction(**self.matching_fn_kwargs)
 
         # kwargs to be used when self.step returns active tracks
         self.active_tracks_kwargs: dict = active_tracks_kwargs if active_tracks_kwargs is not None else {}
@@ -365,6 +367,7 @@ class MultiObjectTracker:
         """ the method matches the new detections with existing trackers,
         creates new trackers if necessary and performs the cleanup.
         Returns the active tracks after active filtering applied """
+        t0 = time.time()
 
         # filter out empty detections
         detections = [det for det in detections if det.box is not None]
@@ -396,5 +399,9 @@ class MultiObjectTracker:
 
         # cleanup dead trackers
         self.cleanup_trackers()
+
+        # log step timing
+        elapsed = (time.time() - t0) * 1000.
+        logger.debug(f'tracking step time: {elapsed:.3f} ms')
 
         return self.active_tracks(**self.active_tracks_kwargs)

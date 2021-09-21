@@ -41,9 +41,9 @@ make install-develop # to install editable version of library
 make test # to run all tests
 ```
 
-## Demo
+## Example usage
 
-### 2D tracking
+### 2D tracking - synthetic example
 
 Run demo example of tracking N objects in 2D space. In the ideal world it will show a bunch of colorful objects moving on a grey canvas in various directions, sometimes overlapping, sometimes not. Each object is detected from time to time (green box) and once it's being tracked by motpy, its track box is drawn in red with an ID above.
 
@@ -52,6 +52,23 @@ make demo
 ```
 
 ![2D tracking preview](assets/2d_multi_object_tracking.gif)
+
+### Detect and track objects in the video
+
+-   example uses a COCO-trained model provided by torchvision library
+-   to run this example, you'll have to install `requirements_dev.txt` dependencies (`torch`, `torchvision`, etc.)
+-   to run on CPU, specify `--device=cpu` 
+
+```bash
+python examples/detect_and_track_in_video.py \
+            --video_path=./assets/video.mp4 \
+            --detect_labels=['car','truck'] \
+            --tracker_min_iou=0.15 \
+            --device=cuda
+```
+
+![Vehicles tracking in San Francisco](assets/detect_and_track_vehicles.gif)
+_video source: <https://www.youtube.com/watch?v=PGMu_Z89Ao8/> - from great YT channel of J Utah_
 
 ### MOT16 challange tracking
 
@@ -133,7 +150,9 @@ Feel free to tune the parameter of Q and R matrix builders to better fit your us
     - [x] Initial version
     - [ ] Documentation
     - [ ] Performance optimization
-    - [ ] Multiple object classes support
+    - [x] Multiple object classes support via instance-level class_id counting
+    - [x] Allow tracking without Kalman filter
+    - [x] Easy to use and configurable example of video processing with off-the-shelf object detector
 
 ## References, papers, ideas and acknowledgements
 

@@ -3,7 +3,11 @@ import time
 import cv2
 from motpy import ModelPreset, MultiObjectTracker
 from motpy.core import setup_logger
-from motpy.testing_viz import draw_rectangle, draw_text, image_generator
+from motpy.testing_viz import draw_rectangle, draw_track, image_generator
+from motpy.utils import ensure_packages_installed
+
+ensure_packages_installed(['cv2'])
+
 
 logger = setup_logger(__name__, 'DEBUG', is_main=True)
 
@@ -37,12 +41,10 @@ def demo_tracking_visualization(
         logger.debug(f'tracking elapsed time: {elapsed:.3f} ms')
 
         for track in active_tracks:
-            score = track.score if track.score is not None else -1
-            img = draw_rectangle(img, track.box, color=(10, 10, 220), thickness=5)
-            img = draw_text(img, f'ID: {track.id[:8]} | S: {score:.1f} | C: {track.class_id}', pos=track.box)
+            draw_track(img, track)
 
         for det in detections:
-            img = draw_rectangle(img, det.box, color=(10, 220, 20), thickness=1)
+            draw_rectangle(img, det.box, color=(10, 220, 20), thickness=1)
 
         cv2.imshow('preview', img)
         # stop the demo by pressing q

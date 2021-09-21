@@ -8,6 +8,10 @@ import pandas as pd
 from motpy import Detection, MultiObjectTracker
 from motpy.core import setup_logger
 from motpy.testing_viz import draw_detection, draw_track
+from motpy.utils import ensure_packages_installed
+
+ensure_packages_installed(['cv2', 'pandas'])
+
 
 """ MOT16 tracking demo
 

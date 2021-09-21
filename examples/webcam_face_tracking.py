@@ -7,6 +7,10 @@ from motpy import Detection, MultiObjectTracker, NpImage
 from motpy.core import setup_logger
 from motpy.detector import BaseObjectDetector
 from motpy.testing_viz import draw_detection, draw_track
+from motpy.utils import ensure_packages_installed
+
+ensure_packages_installed(['cv2'])
+
 
 """
 

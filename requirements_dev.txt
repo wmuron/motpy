@@ -1,12 +1,19 @@
 # benchmark requirements
 pandas
+
 # dev requirements below
 autoflake
 mypy
+
 # for testing and demo requirements below are necessary
 pytest
 fire
+
 opencv-python
 # installation of opencv-python might be troublesome on Raspbian, hence I've left it out
 # from package requirements. If you really need demos, refer to link below for installation
 # instructions: https://blog.piwheels.org/new-opencv-builds-including-opencv-4-x/
+# more complext examples, e.g. coco_track
+
+torch==1.9.0
+torchvision==0.10.0

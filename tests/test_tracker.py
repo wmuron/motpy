@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from motpy.core import Detection, setup_logger
 from motpy.testing import data_generator
-from motpy.tracker import (BasicMatchingFunction, MultiObjectTracker,
+from motpy.tracker import (IOUAndFeatureMatchingFunction, MultiObjectTracker,
                            exponential_moving_average_fn, match_by_cost_matrix)
 from numpy.testing import assert_array_equal
 
@@ -39,7 +39,7 @@ def test_simple_tracking_objects(
     else:
         model_spec = {'order_pos': order_pos, 'dim_pos': 2, 'order_size': 0, 'dim_size': 2}
 
-    matching_fn = BasicMatchingFunction(feature_similarity_beta=feature_similarity_beta)
+    matching_fn = IOUAndFeatureMatchingFunction(feature_similarity_beta=feature_similarity_beta)
     mot = MultiObjectTracker(
         dt=dt,
         model_spec=model_spec,
