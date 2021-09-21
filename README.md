@@ -132,7 +132,7 @@ model_spec = {
         'r_var_pos': 0.1 # measurement noise
     }
 
-tracker = MultiObjectTracker(dt=1 / 10, model_spec=model_spec)
+tracker = MultiObjectTracker(dt=0.1, model_spec=model_spec)
 ```
 
 The simplification used here is that the object position and size can be treated and modeled independently; hence you can use even 2D bounding boxes in 3D space.

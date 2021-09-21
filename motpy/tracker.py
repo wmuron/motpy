@@ -144,7 +144,6 @@ class KalmanTracker(SingleObjectTracker):
 
     def __init__(self,
                  model_kwargs: dict = DEFAULT_MODEL_SPEC,
-                 dt: float = 1 / 24,
                  x0: Optional[Vector] = None,
                  box0: Optional[Box] = None,
                  **kwargs) -> None:
@@ -152,7 +151,7 @@ class KalmanTracker(SingleObjectTracker):
         super(KalmanTracker, self).__init__(**kwargs)
 
         self.model_kwargs: dict = model_kwargs
-        self.model = Model(dt=dt, **self.model_kwargs)
+        self.model = Model(**self.model_kwargs)
 
         if x0 is None:
             x0 = self.model.box_to_x(box0)
@@ -310,7 +309,6 @@ class MultiObjectTracker:
             active_tracks_kwargs limits surfacing of fresh/fading out tracks
         """
 
-        self.dt: float = dt
         self.trackers: List[SingleObjectTracker] = []
 
         # kwargs to be passed to each single object tracker
@@ -320,12 +318,16 @@ class MultiObjectTracker:
         # translate model specification into single object tracker to be used
         if model_spec is None:
             self.tracker_clss = SimpleTracker
+            if dt is not None:
+                logger.warning('specified dt is ignored in simple tracker mode')
         elif isinstance(model_spec, dict):
             self.tracker_clss = KalmanTracker
             self.tracker_kwargs['model_kwargs'] = model_spec
+            self.tracker_kwargs['model_kwargs']['dt'] = dt
         elif isinstance(model_spec, str) and model_spec in ModelPreset.__members__:
             self.tracker_clss = KalmanTracker
             self.tracker_kwargs['model_kwargs'] = ModelPreset[model_spec].value
+            self.tracker_kwargs['model_kwargs']['dt'] = dt
         else:
             raise NotImplementedError(f'unsupported motion model {model_spec}')
 
