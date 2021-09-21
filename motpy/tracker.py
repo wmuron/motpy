@@ -310,6 +310,7 @@ class MultiObjectTracker:
         for det_idx in set(range(len(detections))).difference(assigned_det_idxs):
             tracker = Tracker(box0=detections[det_idx].box,
                               model_spec=self.model_spec,
+                              dt=self.dt,
                               **self.tracker_kwargs)
             self.trackers.append(tracker)
 
