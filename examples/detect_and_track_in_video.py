@@ -113,7 +113,8 @@ def run(video_path: str, detect_labels, video_downscale: float = 1., architectur
         detections = detector.process_image(frame)
 
         # track detected objects
-        active_tracks = tracker.step(detections=detections)
+        _ = tracker.step(detections=detections)
+        active_tracks = tracker.active_tracks(min_steps_alive=3)
 
         # visualize and show detections and tracks
         if show_detections:
