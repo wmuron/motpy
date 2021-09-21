@@ -292,13 +292,14 @@ class MultiObjectTracker:
         # filter out empty detections
         detections = [det for det in detections if det.box is not None]
 
-        logger.debug('step with %d detections' % len(detections))
-        matches = self.matching_fn(self.trackers, detections)
-        logger.debug('matched %d pairs' % len(matches))
-
         # all trackers: predict
         for t in self.trackers:
             t.predict()
+
+        # match trackers with detections
+        logger.debug('step with %d detections' % len(detections))
+        matches = self.matching_fn(self.trackers, detections)
+        logger.debug('matched %d pairs' % len(matches))
 
         # assigned trackers: correct
         for match in matches:
