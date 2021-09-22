@@ -64,8 +64,3 @@ def setup_logger(name: str,
         logging.basicConfig(stream=sys.stdout, level=level_val, format=LOG_FORMAT)
 
     return logger
-
-
-def track_to_string(track: Track) -> str:
-    score = track.score if track.score is not None else -1
-    return f'ID: {track.id[:8]} | S: {score:.1f} | C: {track.class_id}'
