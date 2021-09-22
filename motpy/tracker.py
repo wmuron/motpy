@@ -181,11 +181,13 @@ class SimpleTracker(SingleObjectTracker):
     """ A simple single tracker with no motion modeling and box update using exponential moving averege """
 
     def __init__(self,
+                 dt=None,
                  box0: Optional[Box] = None,
                  box_update_gamma: float = 0.5,
                  **kwargs):
 
         super(SimpleTracker, self).__init__(**kwargs)
+        self.dt = dt
         self._box: Box = box0
 
         self.update_box_fn: Callable = exponential_moving_average_fn(box_update_gamma)
@@ -369,13 +371,14 @@ class MultiObjectTracker:
         # filter out empty detections
         detections = [det for det in detections if det.box is not None]
 
-        logger.debug('step with %d detections' % len(detections))
-        matches = self.matching_fn(self.trackers, detections)
-        logger.debug('matched %d pairs' % len(matches))
-
         # all trackers: predict
         for t in self.trackers:
             t.predict()
+
+        # match trackers with detections
+        logger.debug('step with %d detections' % len(detections))
+        matches = self.matching_fn(self.trackers, detections)
+        logger.debug('matched %d pairs' % len(matches))
 
         # assigned trackers: correct
         for match in matches:
@@ -386,7 +389,11 @@ class MultiObjectTracker:
         assigned_det_idxs = set(matches[:, 1]) if len(matches) > 0 else []
         for det_idx in set(range(len(detections))).difference(assigned_det_idxs):
             det = detections[det_idx]
-            tracker = self.tracker_clss(box0=det.box, score0=det.score, class_id0=det.class_id, **self.tracker_kwargs)
+            tracker = self.tracker_clss(box0=det.box,
+                                        score0=det.score,
+                                        class_id0=det.class_id,
+                                        dt=self.dt,
+                                        **self.tracker_kwargs)
             self.trackers.append(tracker)
 
         # unassigned trackers
