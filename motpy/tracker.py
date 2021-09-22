@@ -410,7 +410,6 @@ class MultiObjectTracker:
             tracker = self.tracker_clss(box0=det.box,
                                         score0=det.score,
                                         class_id0=det.class_id,
-                                        dt=self.dt,
                                         **self.tracker_kwargs)
             self.trackers.append(tracker)
 
