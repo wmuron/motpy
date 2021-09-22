@@ -252,6 +252,7 @@ def cost_matrix_iou_feature(trackers: Sequence[SingleObjectTracker],
 def match_by_cost_matrix(trackers: Sequence[SingleObjectTracker],
                          detections: Sequence[Detection],
                          min_iou: float = 0.1,
+                         multi_match_min_iou: float = 1.1,
                          **kwargs) -> np.ndarray:
     if len(trackers) == 0 or len(detections) == 0:
         return []
@@ -259,9 +260,19 @@ def match_by_cost_matrix(trackers: Sequence[SingleObjectTracker],
     cost_mat, iou_mat = cost_matrix_iou_feature(trackers, detections, **kwargs)
     row_ind, col_ind = scipy.optimize.linear_sum_assignment(cost_mat)
 
-    # filter out low IOU matches
-    ret = [[r, c] for r, c in zip(row_ind, col_ind) if iou_mat[r, c] >= min_iou]
-    return np.array(ret)
+    matches = []
+    for r, c in zip(row_ind, col_ind):
+        # check linear assignment winner
+        if iou_mat[r, c] >= min_iou:
+            matches.append((r, c))
+
+        # check other high IOU detections
+        if multi_match_min_iou < 1.:
+            for c2 in range(iou_mat.shape[1]):
+                if c2 != c and iou_mat[r, c2] > multi_match_min_iou:
+                    matches.append((r, c2))
+
+    return np.array(matches)
 
 
 class BaseMatchingFunction:
@@ -277,10 +288,11 @@ class IOUAndFeatureMatchingFunction(BaseMatchingFunction):
     feature similarity measured with a specified metric """
 
     def __init__(self, min_iou: float = 0.1,
-                 feature_similarity_fn=angular_similarity,
+                 multi_match_min_iou: float = 1.1,
+                 feature_similarity_fn: Callable = angular_similarity,
                  feature_similarity_beta: Optional[float] = None) -> None:
-
         self.min_iou = min_iou
+        self.multi_match_min_iou = multi_match_min_iou
         self.feature_similarity_fn = feature_similarity_fn
         self.feature_similarity_beta = feature_similarity_beta
 
@@ -289,18 +301,19 @@ class IOUAndFeatureMatchingFunction(BaseMatchingFunction):
                  detections: Sequence[Detection]) -> np.ndarray:
         return match_by_cost_matrix(
             trackers, detections,
-            self.min_iou,
+            min_iou=self.min_iou,
+            multi_match_min_iou=self.multi_match_min_iou,
             feature_similarity_fn=self.feature_similarity_fn,
             feature_similarity_beta=self.feature_similarity_beta)
 
 
 class MultiObjectTracker:
     def __init__(self, dt: float,
-                 model_spec: Union[str, dict] = DEFAULT_MODEL_SPEC,
+                 model_spec: Union[str, Dict] = DEFAULT_MODEL_SPEC,
                  matching_fn: Optional[BaseMatchingFunction] = None,
-                 tracker_kwargs: dict = None,
-                 matching_fn_kwargs: dict = None,
-                 active_tracks_kwargs: dict = None) -> None:
+                 tracker_kwargs: Dict = None,
+                 matching_fn_kwargs: Dict = None,
+                 active_tracks_kwargs: Dict = None) -> None:
         """
             model_spec specifies the dimension and order for position and size of the object
             matching_fn determines the strategy on which the trackers and detections are assigned.
@@ -312,7 +325,7 @@ class MultiObjectTracker:
         self.trackers: List[SingleObjectTracker] = []
 
         # kwargs to be passed to each single object tracker
-        self.tracker_kwargs: dict = tracker_kwargs if tracker_kwargs is not None else {}
+        self.tracker_kwargs: Dict = tracker_kwargs if tracker_kwargs is not None else {}
         self.tracker_clss: Optional[Type[SingleObjectTracker]] = None
 
         # translate model specification into single object tracker to be used
@@ -374,13 +387,14 @@ class MultiObjectTracker:
         # filter out empty detections
         detections = [det for det in detections if det.box is not None]
 
+        # predict state in all trackers
+        for t in self.trackers:
+            t.predict()
+
+        # match trackers with detections
         logger.debug('step with %d detections' % len(detections))
         matches = self.matching_fn(self.trackers, detections)
         logger.debug('matched %d pairs' % len(matches))
-
-        # all trackers: predict
-        for t in self.trackers:
-            t.predict()
 
         # assigned trackers: correct
         for match in matches:

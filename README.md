@@ -51,7 +51,7 @@ Run demo example of tracking N objects in 2D space. In the ideal world it will s
 make demo
 ```
 
-![2D tracking preview](assets/2d_multi_object_tracking.gif)
+<https://user-images.githubusercontent.com/5874874/134305624-d6358cb1-39f8-4499-8a7b-64745f4795a6.mp4>
 
 ### Detect and track objects in the video
 
@@ -67,8 +67,9 @@ python examples/detect_and_track_in_video.py \
             --device=cuda
 ```
 
-![Vehicles tracking in San Francisco](assets/detect_and_track_vehicles.gif)
-_video source: <https://www.youtube.com/watch?v=PGMu_Z89Ao8/> - from great YT channel of J Utah_
+<https://user-images.githubusercontent.com/5874874/134303165-b6835c8a-9cfe-486c-b79f-499f638c0a71.mp4>
+
+_video source: <https://www.youtube.com/watch?v=PGMu_Z89Ao8/>, a great YT channel created by J Utah_
 
 ### MOT16 challange tracking
 
