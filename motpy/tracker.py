@@ -249,10 +249,13 @@ def cost_matrix_iou_feature(trackers: Sequence[SingleObjectTracker],
     return cost_mat, iou_mat
 
 
+EPS = 1e-7
+
+
 def match_by_cost_matrix(trackers: Sequence[SingleObjectTracker],
                          detections: Sequence[Detection],
                          min_iou: float = 0.1,
-                         multi_match_min_iou: float = 1.1,
+                         multi_match_min_iou: float = 1. + EPS,
                          **kwargs) -> np.ndarray:
     if len(trackers) == 0 or len(detections) == 0:
         return []
@@ -288,7 +291,7 @@ class IOUAndFeatureMatchingFunction(BaseMatchingFunction):
     feature similarity measured with a specified metric """
 
     def __init__(self, min_iou: float = 0.1,
-                 multi_match_min_iou: float = 1.1,
+                 multi_match_min_iou: float = 1. + EPS,
                  feature_similarity_fn: Callable = angular_similarity,
                  feature_similarity_beta: Optional[float] = None) -> None:
         self.min_iou = min_iou
