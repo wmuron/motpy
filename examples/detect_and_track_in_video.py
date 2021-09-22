@@ -91,16 +91,26 @@ def read_video_file(video_path: str):
 """
 
 
-def run(video_path: str, detect_labels, video_downscale: float = 1., architecture: str = 'ssdlite320', confidence_threshold: float = 0.5, tracker_min_iou: float = 0.25,
-        show_detections: bool = False, track_text_verbose: int = 0, device: str = 'cpu'):
+def run(video_path: str, detect_labels,
+        video_downscale: float = 1.,
+        architecture: str = 'ssdlite320',
+        confidence_threshold: float = 0.5,
+        tracker_min_iou: float = 0.25,
+        show_detections: bool = False,
+        track_text_verbose: int = 0,
+        device: str = 'cpu',
+        viz_wait_ms: int = 1):
     # setup detector, video reader and object tracker
     detector = CocoObjectDetector(class_ids=get_class_ids(detect_labels), confidence_threshold=confidence_threshold, architecture=architecture, device=device)
     cap, cap_fps = read_video_file(video_path)
     tracker = MultiObjectTracker(
         dt=1 / cap_fps,
         tracker_kwargs={'max_staleness': 5},
-        model_spec=None,
-        matching_fn_kwargs={'min_iou': tracker_min_iou})
+        model_spec={'order_pos': 1, 'dim_pos': 2,
+                    'order_size': 0, 'dim_size': 2,
+                    'q_var_pos': 5000., 'r_var_pos': 0.1},
+        matching_fn_kwargs={'min_iou': tracker_min_iou,
+                            'multi_match_min_iou': 0.93})
 
     while True:
         ret, frame = cap.read()
@@ -125,7 +135,9 @@ def run(video_path: str, detect_labels, video_downscale: float = 1., architectur
             draw_track(frame, track, thickness=2, text_at_bottom=True, text_verbose=track_text_verbose)
 
         cv2.imshow('frame', frame)
-        _ = cv2.waitKey(10)
+        c = cv2.waitKey(viz_wait_ms)
+        if c == ord('q'):
+            break
 
 
 if __name__ == '__main__':
