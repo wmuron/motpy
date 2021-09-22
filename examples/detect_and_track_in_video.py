@@ -19,6 +19,20 @@ from coco_labels import get_class_ids
 ensure_packages_installed(['torch', 'torchvision', 'cv2'])
 
 
+"""
+
+    Usage:
+
+        python examples/detect_and_track_in_video.py \
+            --video_path=./assets/video.mp4 \
+            --detect_labels=['car','truck'] \
+            --tracker_min_iou=0.2 \
+            --architecture=fasterrcnn \
+            --device=cuda
+
+"""
+
+
 logger = setup_logger(__name__, 'DEBUG', is_main=True)
 
 
@@ -75,20 +89,6 @@ def read_video_file(video_path: str):
     cap = cv2.VideoCapture(video_path)
     video_fps = float(cap.get(cv2.CAP_PROP_FPS))
     return cap, video_fps
-
-
-"""
-
-    Usage:
-
-        python examples/detect_and_track_in_video.py \
-            --video_path=./assets/video.mp4 \
-            --detect_labels=['car','truck'] \
-            --tracker_min_iou=0.2 \
-            --architecture=fasterrcnn \
-            --device=cuda
-
-"""
 
 
 def run(video_path: str, detect_labels,

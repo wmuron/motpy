@@ -181,13 +181,11 @@ class SimpleTracker(SingleObjectTracker):
     """ A simple single tracker with no motion modeling and box update using exponential moving averege """
 
     def __init__(self,
-                 dt=None,
                  box0: Optional[Box] = None,
                  box_update_gamma: float = 0.5,
                  **kwargs):
 
         super(SimpleTracker, self).__init__(**kwargs)
-        self.dt = dt
         self._box: Box = box0
 
         self.update_box_fn: Callable = exponential_moving_average_fn(box_update_gamma)
