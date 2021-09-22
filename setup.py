@@ -5,9 +5,9 @@ with open("README.md", "r") as fh:
 
 setup(
     name='motpy',
-    version='0.0.9',
+    version='0.0.10',
     url='https://github.com/wmuron/motpy.git',
-    download_url='https://github.com/wmuron/motpy/releases/tag/v0.0.9-alpha',
+    download_url='https://github.com/wmuron/motpy/releases/tag/v0.0.10-alpha',
     author='Wiktor Muron',
     author_email='wiktormuron@gmail.com',
     description='Library for track-by-detection multi object tracking implemented in python',
