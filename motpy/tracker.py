@@ -355,7 +355,7 @@ class MultiObjectTracker:
             self.matching_fn = IOUAndFeatureMatchingFunction(**self.matching_fn_kwargs)
 
         # kwargs to be used when self.step returns active tracks
-        self.active_tracks_kwargs: dict = active_tracks_kwargs if active_tracks_kwargs is not None else {}
+        self.active_tracks_kwargs: Dict = active_tracks_kwargs if active_tracks_kwargs is not None else {}
         logger.debug('using active_tracks_kwargs: %s' % str(self.active_tracks_kwargs))
 
     def active_tracks(self,
