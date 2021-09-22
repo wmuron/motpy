@@ -6,7 +6,7 @@ from motpy.core import Detection, setup_logger
 from motpy.testing import data_generator
 from motpy.tracker import (IOUAndFeatureMatchingFunction, MultiObjectTracker,
                            exponential_moving_average_fn, match_by_cost_matrix)
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_almost_equal, assert_array_equal
 
 logger = setup_logger(__name__)
 
@@ -77,6 +77,9 @@ def test_tracker_diverges():
     mot.step([Detection(box=box)])
     assert len(mot.trackers) == 1
     first_track_id = mot.active_tracks()[0].id
+
+    # check if dt is propagated to single object tracker
+    assert_almost_equal(mot.trackers[0].model.dt, 0.1)
 
     # check valid tracker
     assert not mot.trackers[0].is_invalid()
