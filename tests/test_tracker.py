@@ -4,15 +4,18 @@ import numpy as np
 import pytest
 from motpy.core import Detection, setup_logger
 from motpy.testing import data_generator
-from motpy.tracker import (BasicMatchingFunction, MultiObjectTracker,
+from motpy.tracker import (IOUAndFeatureMatchingFunction, MultiObjectTracker,
                            exponential_moving_average_fn, match_by_cost_matrix)
 from numpy.testing import assert_almost_equal, assert_array_equal
 
 logger = setup_logger(__name__)
 
 
+USE_SIMPLE_TRACKER = -1
+
+
 @pytest.mark.parametrize("num_objects", [2, 5])
-@pytest.mark.parametrize("order_pos", [0, 1, 2])
+@pytest.mark.parametrize("order_pos", [USE_SIMPLE_TRACKER, 0, 1, 2])
 @pytest.mark.parametrize("feature_similarity_beta", [None, 0.5])
 def test_simple_tracking_objects(
         num_objects: int,
@@ -30,10 +33,14 @@ def test_simple_tracking_objects(
 
     dt = 1 / fps
     num_steps_warmup = 1.0 * fps  # 1 second of warmup
-    model_spec = {'order_pos': order_pos, 'dim_pos': 2, 'order_size': 0, 'dim_size': 2}
 
-    matching_fn = BasicMatchingFunction(feature_similarity_beta=feature_similarity_beta)
-    tracker = MultiObjectTracker(
+    if order_pos == USE_SIMPLE_TRACKER:
+        model_spec = None
+    else:
+        model_spec = {'order_pos': order_pos, 'dim_pos': 2, 'order_size': 0, 'dim_size': 2}
+
+    matching_fn = IOUAndFeatureMatchingFunction(feature_similarity_beta=feature_similarity_beta)
+    mot = MultiObjectTracker(
         dt=dt,
         model_spec=model_spec,
         matching_fn=matching_fn)
@@ -41,18 +48,18 @@ def test_simple_tracking_objects(
     for i in range(num_steps):
         dets_gt, dets_pred = next(gen)
         detections = [d for d in dets_pred if d.box is not None]
-        active_tracks = tracker.step(detections=detections)
+        _ = mot.step(detections=detections)
 
         if i <= num_steps_warmup:
             continue
 
-        matches = match_by_cost_matrix(dets_gt, active_tracks)
+        matches = match_by_cost_matrix(mot.trackers, dets_gt)
         for m in matches:
             gidx, tidx = m[0], m[1]
-            track_id = active_tracks[tidx].id
+            track_id = mot.trackers[tidx].id
             history[gidx].append(track_id)
 
-        assert len(tracker.trackers) == num_objects
+        assert len(mot.trackers) == num_objects
 
     count_frames = (num_steps - num_steps_warmup)
     for gid in range(num_objects):
@@ -66,26 +73,38 @@ def test_simple_tracking_objects(
 def test_tracker_diverges():
     box = np.array([0, 0, 10, 10])
 
-    tracker = MultiObjectTracker(dt=0.1)
-    tracker.step([Detection(box=box)])
-    assert len(tracker.trackers) == 1
-    first_track_id = tracker.active_tracks()[0].id
+    mot = MultiObjectTracker(dt=0.1)
+    mot.step([Detection(box=box)])
+    assert len(mot.trackers) == 1
+    first_track_id = mot.active_tracks()[0].id
 
     # check if dt is propagated to single object tracker
-    assert_almost_equal(tracker.trackers[0].model.dt, 0.1)
+    assert_almost_equal(mot.trackers[0].model.dt, 0.1)
 
     # check valid tracker
-    assert tracker.trackers[0].is_invalid == False
-    tracker.trackers[0]._tracker.x[2] = np.nan
-    assert tracker.trackers[0].is_invalid
+    assert not mot.trackers[0].is_invalid()
+    mot.trackers[0]._tracker.x[2] = np.nan
+    assert mot.trackers[0].is_invalid()
 
-    tracker.cleanup_trackers()
-    assert len(tracker.trackers) == 0
+    mot.cleanup_trackers()
+    assert len(mot.trackers) == 0
 
     # pass invalid box
-    tracker.step([Detection(box=box)])
-    assert len(tracker.trackers) == 1
-    assert tracker.active_tracks()[0].id != first_track_id
+    mot.step([Detection(box=box)])
+    assert len(mot.trackers) == 1
+    assert mot.active_tracks()[0].id != first_track_id
+
+
+def test_class_smoothing():
+    box = np.array([0, 0, 10, 10])
+    mot = MultiObjectTracker(dt=0.1)
+    mot.step([Detection(box=box, class_id=1)])
+    mot.step([Detection(box=box, class_id=2)])
+    mot.step([Detection(box=box, class_id=2)])
+    assert mot.trackers[0].class_id == 2
+    mot.step([Detection(box=box, class_id=1)])
+    mot.step([Detection(box=box, class_id=1)])
+    assert mot.trackers[0].class_id == 1
 
 
 def test_exponential_moving_average():

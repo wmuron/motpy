@@ -1,4 +1,6 @@
 import numpy as np
+
+from motpy import track_to_string
 from motpy.core import Detection, Track, setup_logger
 from motpy.testing import CANVAS_SIZE, data_generator
 
@@ -14,30 +16,31 @@ except BaseException:
 """ methods below require opencv-python package installed """
 
 
-def draw_rectangle(img, box, color, thickness: int = 3):
-    img = cv2.rectangle(img, (int(box[0]), int(box[1])), (int(
-        box[2]), int(box[3])), color, thickness)
-    return img
+def draw_rectangle(img, box, color, thickness: int = 3) -> None:
+    cv2.rectangle(img, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), color, thickness)
 
 
-def draw_text(img, text, above_box, color=(255, 255, 255)):
-    tl_pt = (int(above_box[0]), int(above_box[1]) - 7)
+def draw_text(img, text, pos, color=(255, 255, 255)) -> None:
+    tl_pt = (int(pos[0]), int(pos[1]) - 7)
     cv2.putText(img, text, tl_pt,
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale=0.5, color=color)
-    return img
 
 
-def draw_track(img, track: Track, random_color: bool = True, fallback_color=(200, 20, 20)):
+def draw_track(img, track: Track, random_color: bool = True, fallback_color=(200, 20, 20), thickness: int = 5, text_at_bottom: bool = False, text_verbose: int = 1):
     color = [ord(c) * ord(c) % 256 for c in track.id[:3]] if random_color else fallback_color
-    img = draw_rectangle(img, track.box, color=color, thickness=5)
-    img = draw_text(img, track.id[:5] + '...', above_box=track.box)
+    draw_rectangle(img, track.box, color=color, thickness=thickness)
+    pos = (track.box[0], track.box[3]) if text_at_bottom else (track.box[0], track.box[1])
+
+    if text_verbose > 0:
+        text = track_to_string(track) if text_verbose == 2 else track.id[:8]
+        draw_text(img, text, pos=pos)
+
     return img
 
 
-def draw_detection(img, detection: Detection):
-    img = draw_rectangle(img, detection.box, color=(0, 220, 0), thickness=1)
-    return img
+def draw_detection(img, detection: Detection) -> None:
+    draw_rectangle(img, detection.box, color=(0, 220, 0), thickness=1)
 
 
 def image_generator(*args, **kwargs):
@@ -65,10 +68,10 @@ if __name__ == "__main__":
             num_steps=1000, num_objects=10):
 
         for det_gt, det_pred in zip(dets_gt, dets_pred):
-            img = draw_rectangle(img, det_gt.box, color=det_gt.feature)
+            draw_rectangle(img, det_gt.box, color=det_gt.feature)
 
             if det_pred.box is not None:
-                img = draw_rectangle(img, det_pred.box, color=det_pred.feature, thickness=1)
+                draw_rectangle(img, det_pred.box, color=det_pred.feature, thickness=1)
 
         cv2.imshow('preview', img)
         c = cv2.waitKey(33)

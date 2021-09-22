@@ -27,6 +27,7 @@ class Actor():
         self.disappear_prob = disappear_prob
         self.det_err_sigma = det_err_sigma
         self.canvas_size = canvas_size
+        self.class_id = random.randint(1, 10)
 
         # randomize size
         self.width = random.randint(50, 120)
@@ -71,11 +72,15 @@ class Actor():
             self.disappear_steps -= 1
 
         # wrap boxes and features as detections
-        det_gt = Detection(box=box_gt, score=1., feature=self.color)
+        det_gt = Detection(box=box_gt,
+                           score=1.,
+                           class_id=self.class_id,
+                           feature=self.color)
 
         feature_pred = [random.gauss(0, 5) + v for v in self.color]
         det_pred = Detection(box=box_pred,
                              score=random.uniform(0.5, 1.),
+                             class_id=max(0, self.class_id + random.randint(-1, 1)),
                              feature=feature_pred)
 
         return det_gt, det_pred

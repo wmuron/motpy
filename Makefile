@@ -20,7 +20,7 @@ env-install:
 clean:
 	autoflake --in-place --remove-unused-variables ./motpy/*.py ./tests/*.py
 
-check:
+static-check:
 	mypy --ignore-missing-imports motpy
 
 demo-mot16:
@@ -29,3 +29,11 @@ demo-mot16:
 
 demo-webcam:
 	python examples/webcam_face_tracking.py
+
+demo-video:
+	python examples/detect_and_track_in_video.py \
+            --video_path=./assets/video.mp4 \
+            --detect_labels=['car','truck'] \
+            --tracker_min_iou=0.2 \
+            --architecture=fasterrcnn \
+            --device=cuda

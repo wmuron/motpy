@@ -15,7 +15,8 @@ Box = np.ndarray
 Vector = np.ndarray
 
 # Track is meant as an output from the object tracker
-Track = collections.namedtuple('Track', 'id box score')
+Track = collections.namedtuple('Track', 'id box score class_id')
+
 
 # numpy/opencv image alias
 NpImage = np.ndarray
@@ -26,13 +27,15 @@ class Detection:
             self,
             box: Box,
             score: Optional[float] = None,
+            class_id: Optional[int] = None,
             feature: Optional[Vector] = None):
         self.box = box
         self.score = score
+        self.class_id = class_id
         self.feature = feature
 
     def __repr__(self):
-        return f'Detection(box={self.box}, score={self.score:.5f}, feature={self.feature})'
+        return f'Detection(box={self.box}, score={self.score:.5f}, class_id={self.class_id}, feature={self.feature})'
 
 
 """ utils """

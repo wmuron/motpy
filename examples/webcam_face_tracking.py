@@ -3,10 +3,14 @@ from typing import Sequence
 from urllib.request import urlretrieve
 
 import cv2
-from motpy import Detection, MultiObjectTracker, NpImage, Box
+from motpy import Detection, MultiObjectTracker, NpImage
 from motpy.core import setup_logger
 from motpy.detector import BaseObjectDetector
 from motpy.testing_viz import draw_detection, draw_track
+from motpy.utils import ensure_packages_installed
+
+ensure_packages_installed(['cv2'])
+
 
 """
 
@@ -19,9 +23,9 @@ logger = setup_logger(__name__, 'DEBUG', is_main=True)
 
 
 WEIGHTS_URL = 'https://github.com/opencv/opencv_3rdparty/raw/dnn_samples_face_detector_20170830/res10_300x300_ssd_iter_140000.caffemodel'
-WEIGHTS_PATH = 'opencv_face_detector.caffemodel'
+WEIGHTS_PATH = '/tmp/opencv_face_detector.caffemodel'
 CONFIG_URL = 'https://raw.githubusercontent.com/opencv/opencv/master/samples/dnn/face_detector/deploy.prototxt'
-CONFIG_PATH = 'deploy.prototxt'
+CONFIG_PATH = '/tmp/deploy.prototxt'
 
 
 class FaceDetector(BaseObjectDetector):
@@ -58,7 +62,7 @@ class FaceDetector(BaseObjectDetector):
                 xmax = int(detections[0, 0, i, 5] * image.shape[1])
                 ymax = int(detections[0, 0, i, 6] * image.shape[0])
                 out_detections.append(Detection(box=[xmin, ymin, xmax, ymax], score=confidence))
-            
+
         return out_detections
 
 
