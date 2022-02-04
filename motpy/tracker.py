@@ -358,7 +358,7 @@ class MultiObjectTracker:
         self.active_tracks_kwargs: Dict = active_tracks_kwargs if active_tracks_kwargs is not None else {}
         logger.debug('using active_tracks_kwargs: %s' % str(self.active_tracks_kwargs))
 
-        self.detections_ids = []
+        self.detections_matched_ids = []
 
     def active_tracks(self,
                       max_staleness_to_positive_ratio: float = 3.0,
@@ -401,13 +401,13 @@ class MultiObjectTracker:
         matches = self.matching_fn(self.trackers, detections)
         logger.debug('matched %d pairs' % len(matches))
 
-        self.detections_ids = [None] * len(detections)
+        self.detections_matched_ids = [None] * len(detections)
 
         # assigned trackers: correct
         for match in matches:
             track_idx, det_idx = match[0], match[1]
             self.trackers[track_idx].update(detection=detections[det_idx])
-            self.detections_ids[det_idx] = self.trackers[track_idx].id
+            self.detections_matched_ids[det_idx] = self.trackers[track_idx].id
 
         # not assigned detections: create new trackers POF
         assigned_det_idxs = set(matches[:, 1]) if len(matches) > 0 else []
@@ -417,7 +417,7 @@ class MultiObjectTracker:
                                         score0=det.score,
                                         class_id0=det.class_id,
                                         **self.tracker_kwargs)
-            self.detections_ids[det_idx] = tracker.id
+            self.detections_matched_ids[det_idx] = tracker.id
             self.trackers.append(tracker)
 
         # unassigned trackers
