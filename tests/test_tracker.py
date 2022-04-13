@@ -1,11 +1,12 @@
 from collections import Counter
 
 import numpy as np
+import pickle
 import pytest
 from motpy.core import Detection, setup_logger
 from motpy.testing import data_generator
 from motpy.tracker import (IOUAndFeatureMatchingFunction, MultiObjectTracker,
-                           exponential_moving_average_fn, match_by_cost_matrix)
+                           EMA, match_by_cost_matrix)
 from numpy.testing import assert_almost_equal, assert_array_equal
 
 logger = setup_logger(__name__)
@@ -106,9 +107,26 @@ def test_class_smoothing():
     mot.step([Detection(box=box, class_id=1)])
     assert mot.trackers[0].class_id == 1
 
+def test_pickable():
+    box = np.array([0, 0, 10, 10])
+    mot = MultiObjectTracker(dt=0.1)
+    dumped_empty = pickle.dumps(mot)
+    assert len(dumped_empty) 
+    mot.step([Detection(box=box, class_id=1)])
+    tracks = mot.active_tracks()
+    dumped_nonempty = pickle.dumps(mot)
+    assert len(dumped_nonempty)
+    mot2 = pickle.loads(dumped_nonempty)
+    tracks2 = mot2.active_tracks()
+    assert len(tracks) == len(tracks2)
+    assert tracks[0].id == tracks2[0].id
+    assert np.array_equal(tracks[0].box, tracks2[0].box)
+    assert tracks[0].score == tracks2[0].score
+    assert tracks[0].class_id == tracks2[0].class_id
+    
 
 def test_exponential_moving_average():
-    update_fn = exponential_moving_average_fn(0.5)
+    update_fn = EMA(0.5).exponential_moving_average_fn
 
     # scalars
     assert update_fn(None, 100.) == 100.
