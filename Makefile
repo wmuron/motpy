@@ -5,7 +5,7 @@ install-develop:
 	python setup.py develop
 
 test:
-	python -m pytest ./tests
+	python -m pytest -vvs ./tests
 
 env-create:
 	conda create --name env_motpy python=3.7 -y

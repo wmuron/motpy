@@ -363,11 +363,19 @@ class MultiObjectTracker:
     def active_tracks(self,
                       max_staleness_to_positive_ratio: float = 3.0,
                       max_staleness: float = 999,
-                      min_steps_alive: int = -1) -> List[Track]:
+                      min_steps_alive: int = -1,
+                      keep_det_order: bool = False) -> List[Track]:
         """ returns all active tracks after optional filtering by tracker steps count and staleness """
 
         tracks: List[Track] = []
-        for tracker in self.trackers:
+        if keep_det_order:
+            # Ordered
+            _trackers = self.detections_matched_ids
+        else:
+            # Legacy
+            _trackers = self.trackers
+
+        for tracker in _trackers:
             cond1 = tracker.staleness / tracker.steps_positive < max_staleness_to_positive_ratio  # early stage
             cond2 = tracker.staleness < max_staleness
             cond3 = tracker.steps_alive >= min_steps_alive
@@ -407,7 +415,7 @@ class MultiObjectTracker:
         for match in matches:
             track_idx, det_idx = match[0], match[1]
             self.trackers[track_idx].update(detection=detections[det_idx])
-            self.detections_matched_ids[det_idx] = self.trackers[track_idx].id
+            self.detections_matched_ids[det_idx] = self.trackers[track_idx]
 
         # not assigned detections: create new trackers POF
         assigned_det_idxs = set(matches[:, 1]) if len(matches) > 0 else []
@@ -417,7 +425,7 @@ class MultiObjectTracker:
                                         score0=det.score,
                                         class_id0=det.class_id,
                                         **self.tracker_kwargs)
-            self.detections_matched_ids[det_idx] = tracker.id
+            self.detections_matched_ids[det_idx] = tracker
             self.trackers.append(tracker)
 
         # unassigned trackers
