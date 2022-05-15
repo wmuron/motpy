@@ -2,6 +2,7 @@ from collections import Counter
 
 import numpy as np
 import pytest
+from motpy import ModelPreset
 from motpy.core import Detection, setup_logger
 from motpy.testing import data_generator
 from motpy.tracker import (IOUAndFeatureMatchingFunction, MultiObjectTracker,
@@ -94,6 +95,23 @@ def test_tracker_diverges():
     assert len(mot.trackers) == 1
     assert mot.active_tracks()[0].id != first_track_id
 
+def test_tracker_det_indices():
+    mot = MultiObjectTracker(dt=5)
+    box0 = np.array([0, 0, 10, 10])
+    box1 = np.array([20, 20, 30, 30])
+    mot.step([Detection(box=box) for box in [box0, box1]])
+    track_ids = [t.id for t in mot.active_tracks()]
+    assert len(track_ids) == 2
+    _, indices = mot.active_tracks(return_indices=True)
+    assert indices == [0, 1]
+    mot.step([Detection(box=box) for box in [box1, box0]])
+    assert track_ids == [t.id for t in mot.active_tracks()]
+    track_ids_idx, indices = mot.active_tracks(return_indices=True)
+    assert track_ids == [t.id for t in track_ids_idx]
+    assert indices == [1, 0]
+    mot.step([Detection(box=box) for box in []])
+    _, indices = mot.active_tracks(return_indices=True)
+    assert indices == [-1, -1]
 
 def test_class_smoothing():
     box = np.array([0, 0, 10, 10])
