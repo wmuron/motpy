@@ -41,8 +41,18 @@ def get_kalman_object_tracker(model: Model, x0: Optional[Vector] = None) -> Kalm
 DEFAULT_MODEL_SPEC = ModelPreset.constant_velocity_and_static_box_size_2d.value
 
 
-def exponential_moving_average_fn(gamma: float) -> Callable:
-    def fn(old, new):
+class EMA:
+    """Pickable interface for callable Exponential Moving Average"""
+    def __init__(self,gamma: float):
+        self.gamma = gamma
+    
+    def exponential_moving_average_fn(self, *args, **kwargs) -> float:
+        if len(args) > 0:
+            old, new = args
+        else:
+            old = kwargs.get("old", None)
+            new = kwargs.get("new", None)
+
         if new is None:
             return old
 
@@ -55,9 +65,7 @@ def exponential_moving_average_fn(gamma: float) -> Callable:
         if isinstance(old, Iterable):
             old = np.array(old)
 
-        return gamma * old + (1 - gamma) * new
-
-    return fn
+        return self.gamma * old + (1 - self.gamma) * new   
 
 
 class SingleObjectTracker:
@@ -73,8 +81,8 @@ class SingleObjectTracker:
         self.staleness: float = 0.0
         self.max_staleness: float = max_staleness
 
-        self.update_score_fn: Callable = exponential_moving_average_fn(smooth_score_gamma)
-        self.update_feature_fn: Callable = exponential_moving_average_fn(smooth_feature_gamma)
+        self.update_score_fn: Callable = EMA(smooth_score_gamma).exponential_moving_average_fn
+        self.update_feature_fn: Callable = EMA(smooth_feature_gamma).exponential_moving_average_fn
 
         self.score: Optional[float] = score0
         self.feature: Optional[Vector] = None
@@ -188,7 +196,7 @@ class SimpleTracker(SingleObjectTracker):
         super(SimpleTracker, self).__init__(**kwargs)
         self._box: Box = box0
 
-        self.update_box_fn: Callable = exponential_moving_average_fn(box_update_gamma)
+        self.update_box_fn: Callable = EMA(box_update_gamma).exponential_moving_average_fn
 
     def _predict(self) -> None:
         pass
@@ -363,18 +371,32 @@ class MultiObjectTracker:
     def active_tracks(self,
                       max_staleness_to_positive_ratio: float = 3.0,
                       max_staleness: float = 999,
-                      min_steps_alive: int = -1) -> List[Track]:
-        """ returns all active tracks after optional filtering by tracker steps count and staleness """
+                      min_steps_alive: int = -1,
+                      return_indices: bool = False) -> Union[List[Track], Tuple[List[Track], List[int]]]:
+        """ returns all active tracks after optional filtering by tracker steps count and staleness 
+            returns indices array from last step, -1 is a body not in passed detected boxes
+        """
 
         tracks: List[Track] = []
+        if return_indices:
+            tracks_indices: List[int] = []
+
         for tracker in self.trackers:
             cond1 = tracker.staleness / tracker.steps_positive < max_staleness_to_positive_ratio  # early stage
             cond2 = tracker.staleness < max_staleness
             cond3 = tracker.steps_alive >= min_steps_alive
             if cond1 and cond2 and cond3:
                 tracks.append(Track(id=tracker.id, box=tracker.box(), score=tracker.score, class_id=tracker.class_id))
+                if return_indices:
+                    try:
+                        tracks_indices.append(self.detections_matched_ids.index(tracker))
+                    except ValueError:
+                        tracks_indices.append(-1)
 
         logger.debug('active/all tracks: %d/%d' % (len(self.trackers), len(tracks)))
+        if return_indices:
+            return tracks, tracks_indices
+        
         return tracks
 
     def cleanup_trackers(self) -> None:
@@ -407,7 +429,7 @@ class MultiObjectTracker:
         for match in matches:
             track_idx, det_idx = match[0], match[1]
             self.trackers[track_idx].update(detection=detections[det_idx])
-            self.detections_matched_ids[det_idx] = self.trackers[track_idx].id
+            self.detections_matched_ids[det_idx] = self.trackers[track_idx]
 
         # not assigned detections: create new trackers POF
         assigned_det_idxs = set(matches[:, 1]) if len(matches) > 0 else []
@@ -417,7 +439,7 @@ class MultiObjectTracker:
                                         score0=det.score,
                                         class_id0=det.class_id,
                                         **self.tracker_kwargs)
-            self.detections_matched_ids[det_idx] = tracker.id
+            self.detections_matched_ids[det_idx] = tracker
             self.trackers.append(tracker)
 
         # unassigned trackers
