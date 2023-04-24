@@ -17,7 +17,9 @@ except BaseException:
 
 
 def draw_rectangle(img, box, color, thickness: int = 3) -> None:
-    cv2.rectangle(img, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), color, thickness)
+    x_min, y_min = int(box[0]), int(box[1])
+    x_max, y_max = int(box[len(box) // 2]), int(box[len(box) // 2 + 1])  # for more than 2D
+    cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color, thickness)
 
 
 def draw_text(img, text, pos, color=(255, 255, 255)) -> None:
