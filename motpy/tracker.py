@@ -374,7 +374,7 @@ class MultiObjectTracker:
             if cond1 and cond2 and cond3:
                 tracks.append(Track(id=tracker.id, box=tracker.box(), score=tracker.score, class_id=tracker.class_id))
 
-        logger.debug('active/all tracks: %d/%d' % (len(self.trackers), len(tracks)))
+        logger.debug(f'active/all tracks: {len(tracks)}/{len(self.trackers)}')
         return tracks
 
     def cleanup_trackers(self) -> None:

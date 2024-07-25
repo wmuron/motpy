@@ -35,7 +35,7 @@ class Detection:
         self.feature = feature
 
     def __repr__(self):
-        return f'Detection(box={self.box}, score={self.score:.5f}, class_id={self.class_id}, feature={self.feature})'
+        return f'Detection(box={self.box}, score={f"{self.score:.5f}" if self.score else None}, class_id={self.class_id}, feature={self.feature})'
 
 
 """ utils """
