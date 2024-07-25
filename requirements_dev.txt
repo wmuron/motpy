@@ -15,5 +15,5 @@ opencv-python
 # instructions: https://blog.piwheels.org/new-opencv-builds-including-opencv-4-x/
 # more complext examples, e.g. coco_track
 
-torch==1.9.0
+torch==2.2.0
 torchvision==0.10.0
